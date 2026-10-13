@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-cream text-ink font-body antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dark body {
+    @apply bg-black text-white;
+  }
+
+  /* Dark mode: white borders by default (color utilities still win). */
+  .dark *,
+  .dark *::before,
+  .dark *::after {
+    border-color: #fff;
+  }
+
+  /* Dark mode: brutal shadows flip to white (tokens live in tailwind.config.js). */
+  .dark .shadow-brutal {
+    box-shadow: 5px 5px 0 #fff;
+  }
+
+  .dark .shadow-brutal-sm {
+    box-shadow: 3px 3px 0 #fff;
+  }
+
+  /* Thick, visible focus outlines everywhere. */
+  :focus-visible {
+    outline: 3px solid #4d9cff;
+    outline-offset: 2px;
+  }
+
+  .dark :focus-visible {
+    outline-color: #7cffb2;
+  }
+
+  ::selection {
+    @apply bg-yellow text-ink;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  /* Keyboard-only skip link. */
+  .skip-link {
+    @apply pointer-events-none fixed left-2 top-2 z-[100] -translate-y-24 border bg-yellow px-4 py-3 font-mono text-xs font-bold uppercase tracking-wider text-ink shadow-brutal transition-transform;
+  }
+
+  .skip-link:focus {
+    @apply pointer-events-auto translate-y-0;
+  }
+
+  /* Hide scrollbars on the mobile tab strip (still scrollable). */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

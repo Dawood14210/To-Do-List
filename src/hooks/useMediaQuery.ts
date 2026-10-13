@@ -1,0 +1,22 @@
+import { useEffect, useState } from 'react';
+
+/**
+ * Subscribe to a CSS media query.
+ * Example: useMediaQuery('(min-width: 1024px)')
+ */
+export function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(query).matches : false
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+    const onChange = (event: MediaQueryListEvent) => setMatches(event.matches);
+
+    setMatches(mediaQuery.matches);
+    mediaQuery.addEventListener('change', onChange);
+    return () => mediaQuery.removeEventListener('change', onChange);
+  }, [query]);
+
+  return matches;
+}
