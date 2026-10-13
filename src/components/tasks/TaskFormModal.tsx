@@ -15,6 +15,8 @@ interface TaskFormModalProps {
   open: boolean;
   /** Null = create mode. */
   task: Task | null;
+  /** Create mode only: pre-fill the due date ("yyyy-MM-dd"), e.g. from the calendar. */
+  defaultDate?: string | null;
   onClose: () => void;
 }
 
@@ -37,12 +39,12 @@ const REPEATS: Array<{ value: Repeat; label: string }> = [
   { value: 'monthly', label: 'Monthly' },
 ];
 
-function toFormState(task: Task | null): FormState {
+function toFormState(task: Task | null, defaultDate?: string | null): FormState {
   if (!task) {
     return {
       title: '',
       description: '',
-      date: '',
+      date: defaultDate ?? '',
       time: '',
       priority: 'medium',
       categoryId: '',
@@ -65,20 +67,20 @@ function toFormState(task: Task | null): FormState {
 
 /** Add/edit every task field: title, description, due date+time,
  *  priority stickers, category, subtasks and repeat. */
-export function TaskFormModal({ open, task, onClose }: TaskFormModalProps) {
+export function TaskFormModal({ open, task, defaultDate, onClose }: TaskFormModalProps) {
   const categories = useAppStore((state) => state.categories);
   const addTask = useAppStore((state) => state.addTask);
   const updateTask = useAppStore((state) => state.updateTask);
 
-  const [form, setForm] = useState<FormState>(() => toFormState(task));
+  const [form, setForm] = useState<FormState>(() => toFormState(task, defaultDate));
   const [newSubtask, setNewSubtask] = useState('');
 
   useEffect(() => {
     if (open) {
-      setForm(toFormState(task));
+      setForm(toFormState(task, defaultDate));
       setNewSubtask('');
     }
-  }, [open, task]);
+  }, [open, task, defaultDate]);
 
   const patch = (updates: Partial<FormState>) => setForm((f) => ({ ...f, ...updates }));
 

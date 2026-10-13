@@ -490,6 +490,8 @@ export const useAppStore = create<AppState>()(
       applyUndo: (payload) => {
         if (payload.type === 'delete-tasks') {
           get().restoreTasks(payload.tasks);
+        } else if (payload.type === 'move-task') {
+          get().updateTask(payload.taskId, { dueAt: payload.dueAt });
         } else {
           payload.taskIds.forEach((id) => get().setTaskDone(id, false));
         }

@@ -8,8 +8,8 @@ Hard offset shadows, 3px black borders, zero blur, zero gradients.
 | Library | Why |
 | --- | --- |
 | `zustand` (+ `persist`) | All app state in one store, persisted to `localStorage` |
-| `date-fns` | Header date, calendar/habit date helpers |
-| `@dnd-kit/core` + `@dnd-kit/sortable` | Drag-and-drop task reordering (`reorderTasks` is ready) |
+| `date-fns` | Header date, calendar grids/ranges, habit date helpers |
+| `@dnd-kit/core` + `@dnd-kit/sortable` | Task reordering, plus dragging tasks onto calendar days |
 | `lucide-react` | Big chunky nav/UI icons |
 | `canvas-confetti` | Celebrations (welcome burst, theme toggle) |
 | `react-router-dom` | Page routing |
@@ -36,9 +36,9 @@ plus the shell: `Layout` / `Header` / `Sidebar` / `BottomNav`.
 - **Mobile:** bottom tab bar with big icons (≥48px tap targets, scrollable on tiny screens)
 - **Header:** app name in a yellow block with a thick border + today's date in mono
 
-## Pages (placeholders for now)
+## Pages
 
-Dashboard · Calendar · Focus · Habits · Notes · Settings
+Still placeholders: Dashboard · Focus · Habits · Notes · Settings
 
 **Tasks** is fully built:
 
@@ -60,15 +60,35 @@ Dashboard · Calendar · Focus · Habits · Notes · Settings
 - Funny empty state: CSS shapes + "NOTHING TO DO. SUSPICIOUS."
 - Seeds 5 sample tasks + Study/Personal/Health categories on first load
 
+**Calendar** is fully built:
+
+- **Month · Week · Agenda views** — chunky bordered grid (padded to whole weeks,
+  `date-fns` intervals), mini task labels on desktop, colour dots by category on
+  mobile, plus a per-category legend
+- **Today gets a thick brand-blue border** (day cell, week column and agenda day
+  header) with a TODAY badge
+- Tap a day to open the **day panel** — right side rail on desktop, bottom sheet on
+  mobile — listing that day's tasks with an **add-task button pre-filled with the
+  date**, prev/next day arrows and complete/edit actions
+- **Drag a task onto another day to reschedule it** (`@dnd-kit` droppable day cells,
+  drag handle in the panel); the drag overlay shows a tilted chip of the task
+- **On touch devices: "Move to date"** — a chunky dialog with Today/Tomorrow/Next
+  week presets or any date; the time of day is always kept
+- **Overdue tasks are red with a warning label** — ⚠ chip, ⚠ badge on the day,
+  full "⚠ OVERDUE" stamp in the panel and a dedicated overdue block in the agenda
+- **Previous / next buttons + a Today button**, and **swipe left/right** to page
+  months, weeks and 7-day agenda windows on touch devices
+- Rescheduling is undoable from the toast (new `move-task` undo payload)
+
 ## Folders
 
 ```
 src/
-  components/  # design system + app shell
-  pages/       # route pages (placeholders)
+  components/  # design system + app shell + tasks/ + calendar/ widgets
+  pages/       # route pages
   store/       # zustand persist store (localStorage)
-  hooks/       # useTheme, useToast, useMediaQuery
-  utils/       # cn, dates, confetti, nav, id
+  hooks/       # useTheme, useToast, useMediaQuery, useTasks
+  utils/       # cn, dates, calendar, tasks, confetti, nav, id
   types/       # shared TypeScript types
 ```
 

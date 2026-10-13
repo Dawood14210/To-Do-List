@@ -147,7 +147,9 @@ export type ToastType = 'info' | 'success' | 'warning' | 'error';
 /** Serializable undo payload — survives JSON, replayed by the store. */
 export type UndoPayload =
   | { type: 'delete-tasks'; tasks: Task[] }
-  | { type: 'complete-tasks'; taskIds: string[] };
+  | { type: 'complete-tasks'; taskIds: string[] }
+  /** Calendar reschedule: put `taskId` back on its previous due date. */
+  | { type: 'move-task'; taskId: string; dueAt: string | null };
 
 export interface ToastItem {
   id: string;
