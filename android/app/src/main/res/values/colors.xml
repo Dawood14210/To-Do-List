@@ -4,4 +4,6 @@
     <color name="brutal_yellow">#FFD84D</color>
     <color name="brutal_cream">#FFF4E0</color>
     <color name="brutal_ink">#000000</color>
+    <!-- Dark-mode field (splash, window background). -->
+    <color name="brutal_night">#000000</color>
 </resources>

@@ -1,261 +1,45 @@
 #!/usr/bin/env python3
 """
-Generate the BrutalTodo Android launcher icons and splash screens.
+Generate every raster brand asset from the single source logo, Logo.jpg.
 
-Neo-brutalist recipe: a yellow block, a thick black border and a chunky black
-checkmark — no gradients, no soft shadows, square corners.
+Outputs
+  * Android launcher icons (legacy, round and adaptive foreground), all densities
+  * Android splash drawables for Android 11 and below (portrait, landscape,
+    light and night), cream or black field with the logo centred at 40% of
+    the screen width
+  * Android 12+ splash icon (logo inside the 192dp safe circle of the 288dp
+    system splash canvas)
+  * Web: public/logo.png and public/favicon-64.png
 
-Everything is drawn analytically (signed-distance style coverage) so the shapes
-stay crisp and antialiased at every density. Pure standard library: no Pillow.
+The flat grey backdrop of Logo.jpg is flood-filled from the corners to
+transparent, so the rounded logo itself is the icon shape.
 
-Usage:  python3 tools/generate-android-assets.py
+Needs Pillow:  pip install pillow
+Usage:         python3 tools/generate-android-assets.py
 """
 
-import math
 import os
-import struct
-import zlib
+from collections import deque
 
-YELLOW = (0xFF, 0xD8, 0x4D)
+from PIL import Image
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SOURCE = os.path.join(ROOT, "Logo.jpg")
+RES = os.path.join(ROOT, "android", "app", "src", "main", "res")
+PUBLIC = os.path.join(ROOT, "public")
+
+CREAM = (0xFF, 0xF4, 0xE0)  # colors.xml brutal_cream
 BLACK = (0x00, 0x00, 0x00)
-RES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "android", "app", "src", "main", "res")
+BACKDROP_GREY = 86          # flat grey around the rounded logo
+BACKDROP_TOLERANCE = 14
 
+SPLASH_LOGO_RATIO = 0.40    # logo width as a share of the screen width
+ADAPTIVE_SCALE = 0.80       # logo share of the 108dp adaptive canvas (safe zone)
 
-# --------------------------------------------------------------------------
-# PNG writing
-# --------------------------------------------------------------------------
-
-def write_png(path, width, height, rows):
-    """rows: list of bytearray, each 4*width bytes (RGBA)."""
-    raw = bytearray()
-    for row in rows:
-        raw.append(0)  # filter type 0 (None)
-        raw.extend(row)
-
-    def chunk(tag, data):
-        out = struct.pack(">I", len(data)) + tag + data
-        out += struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
-        return out
-
-    header = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
-    png = b"\x89PNG\r\n\x1a\n"
-    png += chunk(b"IHDR", header)
-    png += chunk(b"IDAT", zlib.compress(bytes(raw), 9))
-    png += chunk(b"IEND", b"")
-
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as handle:
-        handle.write(png)
-    return os.path.getsize(path)
-
-
-# --------------------------------------------------------------------------
-# Shape helpers (coverage in 0..1)
-# --------------------------------------------------------------------------
-
-def coverage(distance, half):
-    """Antialiased coverage for a shape whose edge is <=> distance `half`."""
-    if distance <= half - 0.5:
-        return 1.0
-    if distance >= half + 0.5:
-        return 0.0
-    return half + 0.5 - distance
-
-
-def rect_coverage(x, y, x0, y0, x1, y1):
-    """Coverage of an axis-aligned rectangle."""
-    dx = max(x0 - x, 0.0, x - x1)
-    dy = max(y0 - y, 0.0, y - y1)
-    if dx == 0.0 and dy == 0.0:
-        return 1.0
-    return coverage(math.hypot(dx, dy), 0.0)
-
-
-def ring_coverage(x, y, x0, y0, x1, y1, stroke):
-    """Frame: outer rectangle minus the inner one, `stroke` thick."""
-    return max(
-        0.0,
-        rect_coverage(x, y, x0, y0, x1, y1)
-        - rect_coverage(x, y, x0 + stroke, y0 + stroke, x1 - stroke, y1 - stroke),
-    )
-
-
-def segment_coverage(x, y, ax, ay, bx, by, half):
-    """Round-capped stroke along a segment."""
-    vx, vy = bx - ax, by - ay
-    wx, wy = x - ax, y - ay
-    length_sq = vx * vx + vy * vy
-    t = 0.0 if length_sq == 0 else max(0.0, min(1.0, (wx * vx + wy * vy) / length_sq))
-    px, py = ax + t * vx, ay + t * vy
-    return coverage(math.hypot(x - px, y - py), half)
-
-
-def check_coverage(x, y, x0, y0, x1, y1, stroke):
-    """The chunky checkmark, drawn inside the given box."""
-    width, height = x1 - x0, y1 - y0
-    half = stroke / 2.0
-    # left arm: mid-left -> bottom middle, right arm: bottom middle -> top right
-    a = (x0 + 0.08 * width, y0 + 0.54 * height)
-    b = (x0 + 0.38 * width, y0 + 0.86 * height)
-    c = (x0 + 0.95 * width, y0 + 0.13 * height)
-    return max(
-        segment_coverage(x, y, a[0], a[1], b[0], b[1], half),
-        segment_coverage(x, y, b[0], b[1], c[0], c[1], half),
-    )
-
-
-def blend(base, layer, alpha):
-    return tuple(round(b + (l - b) * alpha) for b, l in zip(base, layer))
-
-
-# --------------------------------------------------------------------------
-# Icons
-# --------------------------------------------------------------------------
-
-def render_icon(size, round_icon=False):
-    """Yellow block, thick black border, black check. AA, per-pixel."""
-    inset = size * 0.045
-    stroke = size * 0.075
-    check_box = (size * 0.20, size * 0.26, size * 0.81, size * 0.78)
-    check_stroke = size * 0.155
-    centre = size / 2.0
-    radius = size / 2.0 - 1.0
-    ring = size * 0.07
-
-    rows = []
-    for py in range(size):
-        row = bytearray()
-        y = py + 0.5
-        for px in range(size):
-            x = px + 0.5
-            if round_icon:
-                dist = math.hypot(x - centre, y - centre)
-                base_alpha = coverage(dist, radius)
-                if base_alpha <= 0.0:
-                    row.extend((0, 0, 0, 0))
-                    continue
-                black = coverage(dist, radius) - coverage(dist, radius - ring)
-                colour = blend(YELLOW, BLACK, min(1.0, black))
-                colour = blend((0, 0, 0), colour, base_alpha)
-                alpha = round(255 * base_alpha)
-            else:
-                alpha = 255
-                black = ring_coverage(x, y, inset, inset, size - inset, size - inset, stroke)
-                colour = blend(YELLOW, BLACK, black)
-
-            check = check_coverage(x, y, *check_box, stroke=check_stroke)
-            colour = blend(colour, BLACK, check)
-            row.extend((*colour, alpha))
-        rows.append(row)
-    return rows
-
-
-def render_adaptive_foreground(size):
-    """Transparent layer: black frame + check inside the 72dp safe zone."""
-    safe = size * (72.0 / 108.0)
-    offset = (size - safe) / 2.0
-    stroke = safe * 0.10
-    box = (offset + safe * 0.06, offset + safe * 0.06, offset + safe * 0.94, offset + safe * 0.94)
-    inset = offset + safe * 0.17
-    check_box = (inset, inset + safe * 0.04, size - inset, size - inset - safe * 0.04)
-    check_stroke = safe * 0.17
-
-    rows = []
-    for py in range(size):
-        row = bytearray()
-        y = py + 0.5
-        for px in range(size):
-            x = px + 0.5
-            black = ring_coverage(x, y, box[0], box[1], box[2], box[3], stroke)
-            black = max(black, check_coverage(x, y, *check_box, stroke=check_stroke))
-            alpha = round(255 * min(1.0, black))
-            row.extend((0, 0, 0, alpha))
-        rows.append(row)
-    return rows
-
-
-# --------------------------------------------------------------------------
-# Splash
-# --------------------------------------------------------------------------
-
-def render_splash(width, height):
-    """Yellow field, black page frame and a centred brutal block + check.
-
-    Rectangles are written as solid byte runs (crisp edges); only the check is
-    antialiased, which keeps the big images fast to generate.
-    """
-    unit = min(width, height)
-    frame = unit * 0.030            # page frame inset
-    frame_stroke = max(2.0, unit * 0.016)
-
-    block = unit * 0.30             # centred block side
-    block_x0 = (width - block) / 2.0
-    block_y0 = (height - block) / 2.0
-    block_x1, block_y1 = block_x0 + block, block_y0 + block
-    block_stroke = block * 0.085
-    shadow = unit * 0.022
-
-    check_stroke = block * 0.20
-    check_box = (
-        block_x0 + block * 0.20,
-        block_y0 + block * 0.20,
-        block_x1 - block * 0.20,
-        block_y1 - block * 0.20,
-    )
-
-    yellow_run = bytes(YELLOW + (255,)) * width
-    black_run = bytes(BLACK + (255,)) * width
-
-    def solid(row, x0, x1, colour=BLACK):
-        start = max(0, int(round(x0)))
-        end = min(width, int(round(x1)))
-        if end > start:
-            row[start * 4 : end * 4] = bytes(colour + (255,)) * (end - start)
-
-    shadow_x0, shadow_y0 = block_x0 + shadow, block_y0 + shadow
-    shadow_x1, shadow_y1 = block_x1 + shadow, block_y1 + shadow
-    check_y0, check_y1 = int(check_box[1] - check_stroke), int(check_box[3] + check_stroke)
-    check_x0, check_x1 = int(check_box[0] - check_stroke), int(check_box[2] + check_stroke)
-
-    rows = []
-    for py in range(height):
-        y = py + 0.5
-        row = bytearray(yellow_run)
-
-        # page frame
-        if y < frame + frame_stroke or y > height - frame - frame_stroke:
-            row = bytearray(black_run)
-        else:
-            solid(row, frame, frame + frame_stroke)
-            solid(row, width - frame - frame_stroke, width - frame)
-
-        # hard shadow behind the block
-        if shadow_y0 <= y <= shadow_y1:
-            solid(row, shadow_x0, shadow_x1)
-
-        # the block: yellow inside, thick black border
-        if block_y0 <= y <= block_y1:
-            solid(row, block_x0, block_x1, YELLOW)
-            if y < block_y0 + block_stroke or y > block_y1 - block_stroke:
-                solid(row, block_x0, block_x1)
-            else:
-                solid(row, block_x0, block_x0 + block_stroke)
-                solid(row, block_x1 - block_stroke, block_x1)
-
-        # the check (antialiased, small area)
-        if check_y0 <= py <= check_y1:
-            for px in range(max(0, check_x0), min(width, check_x1)):
-                alpha = check_coverage(px + 0.5, y, *check_box, stroke=check_stroke)
-                if alpha > 0.0:
-                    index = px * 4
-                    current = tuple(row[index : index + 3])
-                    row[index : index + 3] = bytes(blend(current, BLACK, alpha))
-
-        rows.append(row)
-    return rows
-
-
-# --------------------------------------------------------------------------
+# Android 12+ splash: 288dp canvas, 192dp visible circle. A square of side s
+# fits in that circle when s <= 192 / sqrt(2) ~= 135.7dp, so use 130dp.
+SPLASH_ICON_CANVAS_DP = 288
+SPLASH_ICON_LOGO_DP = 130
 
 ICON_DENSITIES = {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}
 FOREGROUND_DENSITIES = {"mdpi": 108, "hdpi": 162, "xhdpi": 216, "xxhdpi": 324, "xxxhdpi": 432}
@@ -263,34 +47,94 @@ SPLASH_PORT = {"mdpi": (320, 480), "hdpi": (480, 800), "xhdpi": (720, 1280), "xx
 SPLASH_LAND = {"mdpi": (480, 320), "hdpi": (800, 480), "xhdpi": (1280, 720), "xxhdpi": (1600, 960), "xxxhdpi": (1920, 1280)}
 
 
-def main():
-    files = []
-    total_bytes = 0
+def load_logo():
+    """Logo.jpg with the grey backdrop flood-filled to transparent."""
+    image = Image.open(SOURCE).convert("RGBA")
+    width, height = image.size
+    pixels = image.load()
 
+    def is_backdrop(colour):
+        return all(abs(channel - BACKDROP_GREY) <= BACKDROP_TOLERANCE for channel in colour[:3])
+
+    seen = set()
+    queue = deque([(0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1)])
+    while queue:
+        x, y = queue.popleft()
+        if (x, y) in seen or not (0 <= x < width and 0 <= y < height):
+            continue
+        seen.add((x, y))
+        if not is_backdrop(pixels[x, y]):
+            continue
+        pixels[x, y] = (0, 0, 0, 0)
+        queue.extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])
+    return image
+
+
+def save(image, path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    image.save(path, optimize=True)
+    return os.path.getsize(path)
+
+
+def square_logo(logo, side):
+    return logo.resize((side, side), Image.LANCZOS)
+
+
+def adaptive_foreground(logo, size):
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    inner = round(size * ADAPTIVE_SCALE)
+    scaled = square_logo(logo, inner)
+    canvas.alpha_composite(scaled, ((size - inner) // 2, (size - inner) // 2))
+    return canvas
+
+
+def splash(logo, width, height, background):
+    """Solid field with the logo centred at SPLASH_LOGO_RATIO of the width."""
+    canvas = Image.new("RGBA", (width, height), background + (255,))
+    side = round(width * SPLASH_LOGO_RATIO)
+    scaled = square_logo(logo, side)
+    canvas.alpha_composite(scaled, ((width - side) // 2, (height - side) // 2))
+    return canvas.convert("RGB")
+
+
+def main():
+    logo = load_logo()
+    written = []
+    total = 0
+
+    def out(path, image):
+        nonlocal total
+        written.append(path)
+        total += save(image, path)
+
+    # Launcher icons.
     for density, size in ICON_DENSITIES.items():
         folder = os.path.join(RES, f"mipmap-{density}")
-        files.append(os.path.join(folder, "ic_launcher.png"))
-        total_bytes += write_png(files[-1], size, size, render_icon(size))
-        files.append(os.path.join(folder, "ic_launcher_round.png"))
-        total_bytes += write_png(files[-1], size, size, render_icon(size, round_icon=True))
-
+        out(os.path.join(folder, "ic_launcher.png"), square_logo(logo, size))
+        out(os.path.join(folder, "ic_launcher_round.png"), square_logo(logo, size))
     for density, size in FOREGROUND_DENSITIES.items():
-        folder = os.path.join(RES, f"mipmap-{density}")
-        files.append(os.path.join(folder, "ic_launcher_foreground.png"))
-        total_bytes += write_png(files[-1], size, size, render_adaptive_foreground(size))
+        out(os.path.join(RES, f"mipmap-{density}", "ic_launcher_foreground.png"), adaptive_foreground(logo, size))
 
+    # Splash for Android 11 and below: light, then night (black field).
     for density, (width, height) in SPLASH_PORT.items():
-        files.append(os.path.join(RES, f"drawable-port-{density}", "splash.png"))
-        total_bytes += write_png(files[-1], width, height, render_splash(width, height))
+        out(os.path.join(RES, f"drawable-port-{density}", "splash.png"), splash(logo, width, height, CREAM))
+        out(os.path.join(RES, f"drawable-port-night-{density}", "splash.png"), splash(logo, width, height, BLACK))
     for density, (width, height) in SPLASH_LAND.items():
-        files.append(os.path.join(RES, f"drawable-land-{density}", "splash.png"))
-        total_bytes += write_png(files[-1], width, height, render_splash(width, height))
+        out(os.path.join(RES, f"drawable-land-{density}", "splash.png"), splash(logo, width, height, CREAM))
+        out(os.path.join(RES, f"drawable-land-night-{density}", "splash.png"), splash(logo, width, height, BLACK))
+    # Density-less defaults used when no qualifier matches.
+    out(os.path.join(RES, "drawable", "splash.png"), splash(logo, 480, 320, CREAM))
+    out(os.path.join(RES, "drawable-night", "splash.png"), splash(logo, 480, 320, BLACK))
 
-    # Default drawable (used by the launch theme when no density matches).
-    files.append(os.path.join(RES, "drawable", "splash.png"))
-    total_bytes += write_png(files[-1], 480, 320, render_splash(480, 320))
+    # Splash icon for Android 12+ (the platform masks it to a circle).
+    icon_px = round(SPLASH_ICON_LOGO_DP * 4)  # xxxhdpi is 4px per dp
+    out(os.path.join(RES, "drawable-xxxhdpi", "splash_icon_logo.png"), square_logo(logo, icon_px))
 
-    print(f"wrote {len(files)} PNG files ({total_bytes / 1024:.0f} KB) into {RES}")
+    # Web icons.
+    out(os.path.join(PUBLIC, "logo.png"), square_logo(logo, 512))
+    out(os.path.join(PUBLIC, "favicon-64.png"), square_logo(logo, 64))
+
+    print(f"wrote {len(written)} PNG files ({total / 1024:.0f} KB)")
 
 
 if __name__ == "__main__":

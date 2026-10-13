@@ -7,8 +7,9 @@ const config: CapacitorConfig = {
   // The web build is fully local (no remote assets), so it can be served from
   // the app's own scheme — required for the Filesystem/Share plugins to work.
   android: {
-    // Yellow, matching the app: the WebView flashes this while it boots.
-    backgroundColor: '#FFD84D',
+    // Cream, matching the splash and the app background, so the WebView never
+    // flashes a different colour after the splash.
+    backgroundColor: '#FFF4E0',
     allowMixedContent: false,
     captureInput: true,
   },

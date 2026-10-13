@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ system splash icon. The platform draws the icon on a 288dp
+  canvas and only shows the central 192dp circle, so the 130dp logo is inset
+  by 79dp on every side to sit inside that circle without being cropped.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/splash_icon_logo"
+    android:insetLeft="79dp"
+    android:insetTop="79dp"
+    android:insetRight="79dp"
+    android:insetBottom="79dp" />
