@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brutal_yellow</item>
+        <item name="colorPrimaryDark">@color/brutal_ink</item>
+        <item name="colorAccent">@color/brutal_yellow</item>
+        <item name="android:background">@null</item>
+        <!-- Chunky and flat: no window animations, no soft edges. -->
+        <item name="android:windowBackground">@color/brutal_cream</item>
+    </style>
+
+    <!-- Runs after the splash. Its window background must match the splash
+         (cream) so nothing white shows between the splash and the first frame. -->
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:background">@null</item>
+        <item name="android:windowBackground">@color/brutal_cream</item>
+        <!-- Brand-coloured system bars, overridden at runtime by the
+             StatusBar plugin so they follow the in-app theme. -->
+        <item name="android:statusBarColor">@color/brutal_yellow</item>
+        <item name="android:navigationBarColor">@color/brutal_cream</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <!-- Launch theme, Android 11 and below: the splash is the window background
+         drawable (cream field + centred logo). Android 12+ uses values-v31. -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brutal_cream</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+        <item name="android:windowBackground">@drawable/splash</item>
+    </style>
+</resources>

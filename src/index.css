@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* Media and form controls never exceed their container. */
+  img,
+  svg,
+  video,
+  canvas,
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+
+  body {
+    @apply bg-cream text-ink font-body antialiased;
+    /* The only element allowed to hide horizontal overflow. Never on
+       containers: it would clip the hard 5px brutal shadows. */
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    /* Never let content slide under a notch or a rounded corner. */
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    /* The native shell shouldn't rubber-band the whole page. */
+    overscroll-behavior-y: none;
+  }
+
+  .dark body {
+    @apply bg-black text-white;
+  }
+
+  /* Dark mode: white borders by default (color utilities still win). */
+  .dark *,
+  .dark *::before,
+  .dark *::after {
+    border-color: #fff;
+  }
+
+  /* Dark mode: brutal shadows flip to white (tokens live in tailwind.config.js). */
+  .dark .shadow-brutal {
+    box-shadow: 5px 5px 0 #fff;
+  }
+
+  .dark .shadow-brutal-sm {
+    box-shadow: 3px 3px 0 #fff;
+  }
+
+  /* Thick, visible focus outlines everywhere. */
+  :focus-visible {
+    outline: 3px solid #4d9cff;
+    outline-offset: 2px;
+  }
+
+  .dark :focus-visible {
+    outline-color: #7cffb2;
+  }
+
+  ::selection {
+    @apply bg-yellow text-ink;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  /* Keyboard-only skip link. */
+  .skip-link {
+    @apply pointer-events-none fixed left-2 top-2 z-[100] -translate-y-24 border bg-yellow px-4 py-3 font-mono text-xs font-bold uppercase tracking-wider text-ink shadow-brutal transition-transform;
+  }
+
+  .skip-link:focus {
+    @apply pointer-events-auto translate-y-0;
+  }
+
+  /* Sticker tilt: flat on phones/tablets (<768px), tilted on desktop. */
+  .sticker-tilt {
+    transform: none;
+  }
+
+  @media (min-width: 768px) {
+    .sticker-tilt {
+      transform: rotate(var(--tilt, 0deg));
+    }
+  }
+
+  /* Hide scrollbars on the mobile tab strip (still scrollable). */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer utilities {
+  /* ------------------------------------------------ safe areas (notch) */
+  .px-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Room for the fixed bottom tab bar *plus* the gesture bar. */
+  .pb-safe-tabbar {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8rem);
+  }
+
+  /* Same, but the tab bar is hidden from `lg` up. */
+  @media (min-width: 1024px) {
+    .pb-safe-tabbar {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 3rem);
+    }
+  }
+}
+
+/*
+ * Touch devices: `:hover` latches after a tap, so every hover style in the app
+ * is compiled through Tailwind's `hoverable:` variant (see tailwind.config.js)
+ * and only exists for a real pointer — there is nothing to undo here. Tap
+ * feedback comes from the `active:` states instead.
+ */

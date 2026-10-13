@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Neo-brutalist palette, kept in sync with tailwind.config.js. -->
+    <color name="brutal_yellow">#FFD84D</color>
+    <color name="brutal_cream">#FFF4E0</color>
+    <color name="brutal_ink">#000000</color>
+    <!-- Dark-mode field (splash, window background). -->
+    <color name="brutal_night">#000000</color>
+</resources>
