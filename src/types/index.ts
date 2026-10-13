@@ -149,7 +149,9 @@ export type UndoPayload =
   | { type: 'delete-tasks'; tasks: Task[] }
   | { type: 'complete-tasks'; taskIds: string[] }
   /** Calendar reschedule: put `taskId` back on its previous due date. */
-  | { type: 'move-task'; taskId: string; dueAt: string | null };
+  | { type: 'move-task'; taskId: string; dueAt: string | null }
+  /** Category delete: restore the category and re-tag the tasks it owned. */
+  | { type: 'delete-category'; category: Category; taskIds: string[] };
 
 export interface ToastItem {
   id: string;

@@ -19,6 +19,11 @@ import type {
 } from '../types';
 import { createId } from '../utils/id';
 import { nextDueDate } from '../utils/tasks';
+import {
+  displayCategoryName,
+  findCategoryByName,
+  nextCategoryColor,
+} from '../utils/categories';
 
 /* ------------------------------------------------------------------ */
 /* Seed data — shown on first load                                     */
@@ -30,7 +35,7 @@ export const SEED_CATEGORIES: Category[] = [
   { id: 'cat_health', name: 'Health', color: 'bg-mint' },
 ];
 
-const PALETTE = ['bg-blue', 'bg-pink', 'bg-mint', 'bg-orange', 'bg-yellow', 'bg-cream'];
+/** Category colours live in utils/categories so the picker can share them. */
 
 function buildSeedTasks(now: Date): Task[] {
   const at = (dayOffset: number, hour: number, minute = 0): string => {
@@ -168,7 +173,18 @@ interface AppState {
   restoreTasks: (tasks: Task[]) => void;
 
   /* ---------------- categories ---------------- */
+  /** Find-or-create by name (used by quick-add `#tags`). */
   ensureCategory: (name: string) => Category;
+  /** Create a category; returns the existing one when the name is taken. */
+  addCategory: (name: string, color?: string) => Category;
+  updateCategory: (id: string, patch: Partial<Pick<Category, 'name' | 'color'>>) => void;
+  /**
+   * Delete a category and move its tasks to "Uncategorized".
+   * Returns the ids of the tasks that were reassigned (for undo).
+   */
+  deleteCategory: (id: string) => string[];
+  /** Undo a delete: put the category back and re-tag its tasks. */
+  restoreCategory: (category: Category, taskIds: string[]) => void;
 
   /* ---------------- task view ---------------- */
   setTaskView: (patch: Partial<TaskView>) => void;
@@ -361,21 +377,67 @@ export const useAppStore = create<AppState>()(
         }),
 
       /* ------------- categories ------------- */
-      ensureCategory: (name) => {
+      ensureCategory: (name) => get().addCategory(name),
+
+      addCategory: (name, color) => {
         const trimmed = name.trim();
-        const existing = get().categories.find(
-          (c) => c.name.toLowerCase() === trimmed.toLowerCase()
-        );
+        const existing = findCategoryByName(get().categories, trimmed);
         if (existing) return existing;
 
+        const categories = get().categories;
         const category: Category = {
           id: createId('cat'),
-          name: trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
-          color: PALETTE[get().categories.length % PALETTE.length],
+          name: displayCategoryName(trimmed),
+          color: color ?? nextCategoryColor(categories.length),
         };
-        set((state) => ({ categories: [...state.categories, category] }));
+        set({ categories: [...categories, category] });
         return category;
       },
+
+      updateCategory: (id, patch) =>
+        set((state) => ({
+          categories: state.categories.map((category) => {
+            if (category.id !== id) return category;
+            const name = patch.name !== undefined ? patch.name.trim() : category.name;
+            return {
+              ...category,
+              ...patch,
+              // Never store a blank name, and keep the house capitalisation.
+              name: name ? displayCategoryName(name) : category.name,
+            };
+          }),
+        })),
+
+      deleteCategory: (id) => {
+        const affected = get()
+          .tasks.filter((task) => task.categoryId === id)
+          .map((task) => task.id);
+
+        set((state) => ({
+          categories: state.categories.filter((category) => category.id !== id),
+          // Tasks fall back to "Uncategorized" (categoryId: null).
+          tasks: state.tasks.map((task) =>
+            task.categoryId === id ? { ...task, categoryId: null } : task
+          ),
+          // Don't leave the task filter pointing at a deleted category.
+          taskView:
+            state.taskView.category === id
+              ? { ...state.taskView, category: 'all' }
+              : state.taskView,
+        }));
+
+        return affected;
+      },
+
+      restoreCategory: (category, taskIds) =>
+        set((state) => ({
+          categories: state.categories.some((item) => item.id === category.id)
+            ? state.categories
+            : [...state.categories, category],
+          tasks: state.tasks.map((task) =>
+            taskIds.includes(task.id) ? { ...task, categoryId: category.id } : task
+          ),
+        })),
 
       /* ------------- task view ------------- */
       setTaskView: (patch) =>
@@ -490,6 +552,8 @@ export const useAppStore = create<AppState>()(
       applyUndo: (payload) => {
         if (payload.type === 'delete-tasks') {
           get().restoreTasks(payload.tasks);
+        } else if (payload.type === 'delete-category') {
+          get().restoreCategory(payload.category, payload.taskIds);
         } else if (payload.type === 'move-task') {
           get().updateTask(payload.taskId, { dueAt: payload.dueAt });
         } else {

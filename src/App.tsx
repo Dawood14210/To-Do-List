@@ -8,6 +8,7 @@ import { fireConfetti } from './utils/confetti';
 import DashboardPage from './pages/Dashboard';
 import TasksPage from './pages/Tasks';
 import CalendarPage from './pages/Calendar';
+import CategoriesPage from './pages/Categories';
 import FocusPage from './pages/Focus';
 import HabitsPage from './pages/Habits';
 import NotesPage from './pages/Notes';
@@ -46,6 +47,7 @@ function App() {
           <Route index element={<DashboardPage />} />
           <Route path="tasks" element={<TasksPage />} />
           <Route path="calendar" element={<CalendarPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
           <Route path="focus" element={<FocusPage />} />
           <Route path="habits" element={<HabitsPage />} />
           <Route path="notes" element={<NotesPage />} />

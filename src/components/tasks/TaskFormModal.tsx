@@ -205,7 +205,7 @@ export function TaskFormModal({ open, task, defaultDate, onClose }: TaskFormModa
             value={form.categoryId}
             onChange={(event) => patch({ categoryId: event.target.value })}
           >
-            <option value="">No category</option>
+            <option value="">Uncategorized</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}

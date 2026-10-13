@@ -1,4 +1,5 @@
-import { CheckSquare, ListFilter, Plus, Search, Square, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CheckSquare, ListFilter, Plus, Search, Square, Tags, X } from 'lucide-react';
 import { useAppStore } from '../../store';
 import type { PriorityFilter, SortKey, StatusFilter } from '../../types';
 import { BrutalButton } from '../BrutalButton';
@@ -13,6 +14,7 @@ interface TaskToolbarProps {
  * plus select-mode and new-task controls.
  */
 export function TaskToolbar({ onNewTask }: TaskToolbarProps) {
+  const navigate = useNavigate();
   const view = useAppStore((state) => state.taskView);
   const setTaskView = useAppStore((state) => state.setTaskView);
   const categories = useAppStore((state) => state.categories);
@@ -61,6 +63,15 @@ export function TaskToolbar({ onNewTask }: TaskToolbarProps) {
             )}
             {view.selectMode ? 'Done' : 'Select'}
           </BrutalButton>
+          <BrutalButton
+            variant="white"
+            size="icon"
+            aria-label="Manage categories"
+            title="Manage categories"
+            onClick={() => navigate('/categories')}
+          >
+            <Tags aria-hidden="true" size={20} strokeWidth={2.5} />
+          </BrutalButton>
           <BrutalButton variant="ink" onClick={onNewTask}>
             <Plus aria-hidden="true" size={18} strokeWidth={3} />
             New
@@ -98,6 +109,7 @@ export function TaskToolbar({ onNewTask }: TaskToolbarProps) {
           onChange={(event) => setTaskView({ category: event.target.value })}
         >
           <option value="all">Category: all</option>
+          <option value="">Uncategorized</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}

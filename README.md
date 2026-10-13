@@ -8,7 +8,7 @@ Hard offset shadows, 3px black borders, zero blur, zero gradients.
 | Library | Why |
 | --- | --- |
 | `zustand` (+ `persist`) | All app state in one store, persisted to `localStorage` |
-| `date-fns` | Header date, calendar grids/ranges, habit date helpers |
+| `date-fns` | Header date, calendar grids/ranges, dashboard stats, habit date helpers |
 | `@dnd-kit/core` + `@dnd-kit/sortable` | Task reordering, plus dragging tasks onto calendar days |
 | `lucide-react` | Big chunky nav/UI icons |
 | `canvas-confetti` | Celebrations (welcome burst, theme toggle) |
@@ -38,7 +38,7 @@ plus the shell: `Layout` / `Header` / `Sidebar` / `BottomNav`.
 
 ## Pages
 
-Still placeholders: Dashboard · Focus · Habits · Notes · Settings
+Still placeholders: Focus · Habits · Notes · Settings
 
 **Tasks** is fully built:
 
@@ -80,11 +80,34 @@ Still placeholders: Dashboard · Focus · Habits · Notes · Settings
   months, weeks and 7-day agenda windows on touch devices
 - Rescheduling is undoable from the toast (new `move-task` undo payload)
 
+**Dashboard** (home) is fully built:
+
+- Four chunky stat cards — **due today**, **overdue**, **done this week** and the
+  **current streak** (with a 7-day strip) — each card drills into the matching
+  Tasks / Habits view
+- **Big progress bar** for today's completion: fat 4px-bordered bar, `%` sticker
+  and a plain-language status line
+- **Weekly bar chart of completed tasks, built from plain divs with thick
+  borders** — no chart library, no SVG, no gradients; Monday→Sunday with today
+  highlighted in blue
+- **Next up** — the 5 soonest unfinished tasks, complete or edit them in place
+- Red overdue alarm banner whenever something is past due
+
+**Categories** (own page in the sidebar) is fully built:
+
+- Create, **rename** and **delete** categories with a chunky six-swatch
+  **colour picker** (48px swatches, live chip preview, bold checkmark)
+- Deleting asks for confirmation and **reassigns that category's tasks to
+  "Uncategorized"** — the tasks themselves are never deleted, and the move is
+  undoable from the toast (`delete-category` undo payload)
+- Colour dots and chips update instantly across Tasks, Calendar and Dashboard
+- Duplicate names are refused; names are trimmed and capitalised
+
 ## Folders
 
 ```
 src/
-  components/  # design system + app shell + tasks/ + calendar/ widgets
+  components/  # design system + app shell + tasks/ calendar/ dashboard/ categories/
   pages/       # route pages
   store/       # zustand persist store (localStorage)
   hooks/       # useTheme, useToast, useMediaQuery, useTasks
