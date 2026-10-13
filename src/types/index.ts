@@ -140,6 +140,25 @@ export type Theme = 'light' | 'dark';
 
 export interface Settings {
   theme: Theme;
+  /** Pomodoro focus length, in minutes. */
+  focusMinutes: number;
+  /** Pomodoro break length, in minutes. */
+  breakMinutes: number;
+  /** Play a chime when a focus or break session ends. */
+  soundOn: boolean;
+}
+
+/** Outcome of importing a JSON backup on the Settings page. */
+export interface ImportResult {
+  ok: boolean;
+  error?: string;
+  counts?: {
+    tasks: number;
+    categories: number;
+    habits: number;
+    notes: number;
+    focusSessions: number;
+  };
 }
 
 export type ToastType = 'info' | 'success' | 'warning' | 'error';
@@ -151,7 +170,11 @@ export type UndoPayload =
   /** Calendar reschedule: put `taskId` back on its previous due date. */
   | { type: 'move-task'; taskId: string; dueAt: string | null }
   /** Category delete: restore the category and re-tag the tasks it owned. */
-  | { type: 'delete-category'; category: Category; taskIds: string[] };
+  | { type: 'delete-category'; category: Category; taskIds: string[] }
+  /** Habit delete: put the habit (with all its check-ins) back. */
+  | { type: 'delete-habit'; habit: Habit }
+  /** Note delete: put the note back at the top of the pad. */
+  | { type: 'delete-note'; note: Note };
 
 export interface ToastItem {
   id: string;

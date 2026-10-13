@@ -4,6 +4,7 @@ import type {
   Category,
   FocusSession,
   Habit,
+  ImportResult,
   NewHabit,
   NewNote,
   NewTask,
@@ -18,6 +19,7 @@ import type {
   UndoPayload,
 } from '../types';
 import { createId } from '../utils/id';
+import { toISODate } from '../utils/dates';
 import { nextDueDate } from '../utils/tasks';
 import {
   displayCategoryName,
@@ -35,7 +37,19 @@ export const SEED_CATEGORIES: Category[] = [
   { id: 'cat_health', name: 'Health', color: 'bg-mint' },
 ];
 
-/** Category colours live in utils/categories so the picker can share them. */
+/**
+ * Focus/Habits/Notes/Settings defaults. Persisted settings are merged over
+ * these, so adding a field never leaves older saves with `undefined`.
+ */
+export const DEFAULT_SETTINGS: Settings = {
+  theme: 'light',
+  focusMinutes: 25,
+  breakMinutes: 5,
+  soundOn: true,
+};
+
+/** Bump when the persisted shape changes; `migrate` upgrades older saves. */
+export const STORE_VERSION = 3;
 
 function buildSeedTasks(now: Date): Task[] {
   const at = (dayOffset: number, hour: number, minute = 0): string => {
@@ -122,6 +136,42 @@ function buildSeedTasks(now: Date): Task[] {
   ];
 }
 
+/**
+ * Two sample habits, checked on recent days so the 7-day grid and the streak
+ * counters look alive on a fresh install.
+ */
+function buildSeedHabits(now: Date): Habit[] {
+  const daysAgo = (offset: number): string => {
+    const date = new Date(now);
+    date.setDate(date.getDate() - offset);
+    return toISODate(date);
+  };
+  const createdAt = new Date(now.getTime() - 6 * 86_400_000).toISOString();
+
+  return [
+    {
+      id: createId('habit'),
+      name: 'Drink 2L water',
+      color: 'bg-mint',
+      // Today, yesterday, the day before … and a gap: a live 3-day streak.
+      completedDates: [daysAgo(0), daysAgo(1), daysAgo(2), daysAgo(4)],
+      createdAt,
+    },
+    {
+      id: createId('habit'),
+      name: 'Read 20 pages',
+      color: 'bg-blue',
+      completedDates: [daysAgo(1), daysAgo(3), daysAgo(5)],
+      createdAt,
+    },
+  ];
+}
+
+/** Keeps arrays from a JSON import safe to spread into the store. */
+function asArray<T>(value: unknown): T[] | null {
+  return Array.isArray(value) ? (value as T[]) : null;
+}
+
 export function buildDefaultTaskView(): TaskView {
   return {
     search: '',
@@ -155,7 +205,16 @@ interface AppState {
   /* ---------------- settings ---------------- */
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  updateSettings: (patch: Partial<Settings>) => void;
   markWelcomed: () => void;
+
+  /* ---------------- data (Settings page) ---------------- */
+  /** Whole store as a pretty-printed JSON backup. */
+  exportData: () => string;
+  /** Replace everything with a parsed backup (never throws). */
+  importData: (json: string) => ImportResult;
+  /** Wipe back to the fresh-install seed data (theme is kept). */
+  resetData: () => void;
 
   /* ---------------- tasks ---------------- */
   addTask: (input: NewTask) => Task;
@@ -194,14 +253,19 @@ interface AppState {
 
   /* ---------------- habits ---------------- */
   addHabit: (input: NewHabit) => Habit;
+  updateHabit: (id: string, patch: Partial<Pick<Habit, 'name' | 'color'>>) => void;
   toggleHabitDate: (id: string, isoDate: string) => void;
   deleteHabit: (id: string) => void;
+  /** Undo a habit delete (skips existing ids). */
+  restoreHabit: (habit: Habit) => void;
 
   /* ---------------- notes ---------------- */
   addNote: (input: NewNote) => Note;
   updateNote: (id: string, patch: Partial<Omit<Note, 'id'>>) => void;
   toggleNotePin: (id: string) => void;
   deleteNote: (id: string) => void;
+  /** Undo a note delete (skips existing ids). */
+  restoreNote: (note: Note) => void;
 
   /* ---------------- focus ---------------- */
   logFocusSession: (minutes: number, taskId?: string | null) => FocusSession;
@@ -217,12 +281,12 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       /* ------------- initial state (seeded on first load) ------------- */
-      settings: { theme: 'light' },
+      settings: { ...DEFAULT_SETTINGS },
       welcomed: false,
       tasks: buildSeedTasks(new Date()),
       categories: SEED_CATEGORIES,
       taskView: buildDefaultTaskView(),
-      habits: [],
+      habits: buildSeedHabits(new Date()),
       notes: [],
       focusSessions: [],
       toasts: [],
@@ -239,7 +303,103 @@ export const useAppStore = create<AppState>()(
           },
         })),
 
+      updateSettings: (patch) =>
+        set((state) => ({ settings: { ...state.settings, ...patch } })),
+
       markWelcomed: () => set({ welcomed: true }),
+
+      /* ------------- data (Settings page) ------------- */
+      exportData: () => {
+        const state = get();
+        return JSON.stringify(
+          {
+            app: 'brutal-todo',
+            version: STORE_VERSION,
+            exportedAt: new Date().toISOString(),
+            data: {
+              settings: state.settings,
+              welcomed: state.welcomed,
+              tasks: state.tasks,
+              categories: state.categories,
+              taskView: state.taskView,
+              habits: state.habits,
+              notes: state.notes,
+              focusSessions: state.focusSessions,
+            },
+          },
+          null,
+          2
+        );
+      },
+
+      importData: (json) => {
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(json);
+        } catch {
+          return { ok: false, error: 'That file is not valid JSON.' };
+        }
+        if (!parsed || typeof parsed !== 'object') {
+          return { ok: false, error: 'Nothing to import in that file.' };
+        }
+
+        // Accept both our envelope ({ data: {...} }) and a raw state dump.
+        const envelope = parsed as { data?: unknown };
+        const source = (
+          envelope.data && typeof envelope.data === 'object' ? envelope.data : parsed
+        ) as Record<string, unknown>;
+
+        const tasks = asArray<Task>(source.tasks);
+        if (!tasks) {
+          return { ok: false, error: 'No task list found — is this a To-Do List backup?' };
+        }
+        const categories = asArray<Category>(source.categories) ?? [];
+        const habits = asArray<Habit>(source.habits) ?? [];
+        const notes = asArray<Note>(source.notes) ?? [];
+        const focusSessions = asArray<FocusSession>(source.focusSessions) ?? [];
+        const settings = {
+          ...DEFAULT_SETTINGS,
+          ...(source.settings && typeof source.settings === 'object' ? source.settings : {}),
+        } as Settings;
+
+        set({
+          settings,
+          welcomed: true,
+          tasks,
+          categories,
+          habits,
+          notes,
+          focusSessions,
+          taskView: buildDefaultTaskView(),
+          toasts: [],
+        });
+
+        return {
+          ok: true,
+          counts: {
+            tasks: tasks.length,
+            categories: categories.length,
+            habits: habits.length,
+            notes: notes.length,
+            focusSessions: focusSessions.length,
+          },
+        };
+      },
+
+      resetData: () => {
+        const now = new Date();
+        set({
+          settings: { ...DEFAULT_SETTINGS, theme: get().settings.theme },
+          welcomed: true,
+          tasks: buildSeedTasks(now),
+          categories: SEED_CATEGORIES,
+          taskView: buildDefaultTaskView(),
+          habits: buildSeedHabits(now),
+          notes: [],
+          focusSessions: [],
+          toasts: [],
+        });
+      },
 
       /* ------------- tasks ------------- */
       addTask: (input) => {
@@ -471,6 +631,15 @@ export const useAppStore = create<AppState>()(
         return habit;
       },
 
+      updateHabit: (id, patch) =>
+        set((state) => ({
+          habits: state.habits.map((habit) => {
+            if (habit.id !== id) return habit;
+            const name = patch.name !== undefined ? patch.name.trim() : habit.name;
+            return { ...habit, ...patch, name: name || habit.name };
+          }),
+        })),
+
       toggleHabitDate: (id, isoDate) =>
         set((state) => ({
           habits: state.habits.map((habit) => {
@@ -487,6 +656,13 @@ export const useAppStore = create<AppState>()(
 
       deleteHabit: (id) =>
         set((state) => ({ habits: state.habits.filter((habit) => habit.id !== id) })),
+
+      restoreHabit: (habit) =>
+        set((state) => ({
+          habits: state.habits.some((item) => item.id === habit.id)
+            ? state.habits
+            : [...state.habits, habit],
+        })),
 
       /* ------------- notes ------------- */
       addNote: (input) => {
@@ -523,6 +699,13 @@ export const useAppStore = create<AppState>()(
       deleteNote: (id) =>
         set((state) => ({ notes: state.notes.filter((note) => note.id !== id) })),
 
+      restoreNote: (note) =>
+        set((state) => ({
+          notes: state.notes.some((item) => item.id === note.id)
+            ? state.notes
+            : [note, ...state.notes],
+        })),
+
       /* ------------- focus ------------- */
       logFocusSession: (minutes, taskId = null) => {
         const session: FocusSession = {
@@ -554,6 +737,10 @@ export const useAppStore = create<AppState>()(
           get().restoreTasks(payload.tasks);
         } else if (payload.type === 'delete-category') {
           get().restoreCategory(payload.category, payload.taskIds);
+        } else if (payload.type === 'delete-habit') {
+          get().restoreHabit(payload.habit);
+        } else if (payload.type === 'delete-note') {
+          get().restoreNote(payload.note);
         } else if (payload.type === 'move-task') {
           get().updateTask(payload.taskId, { dueAt: payload.dueAt });
         } else {
@@ -564,11 +751,15 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'brutal-todo-v1',
-      version: 2,
+      version: STORE_VERSION,
       storage: createJSONStorage(() => localStorage),
-      // v1 (flat task shape) → v2 (rich task model + categories + view).
+      /*
+       * v1 (flat task shape) → v2 (rich task model + categories + view)
+       * v2 → v3 (pomodoro settings + seeded habits)
+       */
       migrate: (persisted, version) => {
-        const state = persisted as Partial<AppState> & { tasks?: unknown[] };
+        let state = persisted as Partial<AppState> & { tasks?: unknown[] };
+
         if (version < 2) {
           const oldTasks = (state.tasks ?? []) as Array<Record<string, unknown>>;
           const tasks: Task[] = oldTasks.map((old, index) => ({
@@ -589,12 +780,12 @@ export const useAppStore = create<AppState>()(
             completedAt: old.done ? String(old.createdAt ?? new Date().toISOString()) : null,
           }));
 
-          return {
+          state = {
             ...state,
             tasks: tasks.length > 0 ? tasks : buildSeedTasks(new Date()),
             categories: SEED_CATEGORIES,
             taskView: buildDefaultTaskView(),
-            settings: state.settings ?? { theme: 'light' },
+            settings: state.settings ?? { ...DEFAULT_SETTINGS },
             welcomed: Boolean(state.welcomed),
             habits: state.habits ?? [],
             notes: state.notes ?? [],
@@ -602,6 +793,21 @@ export const useAppStore = create<AppState>()(
             toasts: [],
           };
         }
+
+        if (version < 3) {
+          // Merge new pomodoro defaults under whatever was saved, and give
+          // brand-new users the sample habits.
+          const savedHabits = asArray<Habit>(state.habits) ?? [];
+          state = {
+            ...state,
+            settings: { ...DEFAULT_SETTINGS, ...(state.settings ?? {}) },
+            habits: savedHabits.length > 0 ? savedHabits : buildSeedHabits(new Date()),
+            notes: asArray<Note>(state.notes) ?? [],
+            focusSessions: asArray<FocusSession>(state.focusSessions) ?? [],
+            toasts: [],
+          };
+        }
+
         return state as AppState;
       },
       // Toasts are transient: hydrate everything, drop stale notifications.

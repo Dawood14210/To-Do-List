@@ -38,7 +38,8 @@ plus the shell: `Layout` / `Header` / `Sidebar` / `BottomNav`.
 
 ## Pages
 
-Still placeholders: Focus · Habits · Notes · Settings
+Everything in the sidebar is built — Tasks, Calendar, Dashboard, Categories,
+Focus, Habits, Notes and Settings.
 
 **Tasks** is fully built:
 
@@ -103,11 +104,71 @@ Still placeholders: Focus · Habits · Notes · Settings
 - Colour dots and chips update instantly across Tasks, Calendar and Dashboard
 - Duplicate names are refused; names are trimmed and capitalised
 
+**Focus** is fully built — a Pomodoro timer that survives background tabs:
+
+- **Timestamp-based timer** — remaining time is always `endsAt − Date.now()`, never a
+  count of `setInterval` ticks, so switching tabs, locking the phone or throttling the
+  timer can't make it drift; a jump forward still settles on the correct value
+- **Big chunky `mm:ss` clock** in a thick-bordered block with a striped progress bar
+- **Start / Pause / Resume / Reset** — pausing freezes the exact remainder, resuming
+  continues from it, reset snaps back to the full phase
+- **Configurable lengths** — focus and break minutes write straight to settings
+  (clamped 1–180) with 15/25/45-minute presets and a "Classic 25/5" reset
+- **Focus and Break tabs** — sessions roll Focus → Break on completion and Break →
+  Focus after the break; breaks are not counted as focus sessions
+- **Linked to a task** — pick a task from the dropdown and the finished session is
+  logged against it; the banner names the task you worked on
+- **Sound + banner when a session ends** — a short generated WebAudio arpeggio (no
+  audio files) plus a colour-coded banner with "Start break" / "Back to focus"
+  buttons, and confetti for finished focus sessions; the chime can be muted
+- **Completed sessions counted per task** — a leaderboard of total minutes, session
+  count and share of tracked focus
+- The **tab title shows the live countdown** (`24:12 · Focus — To-Do List`) while
+  running and is restored when you leave the page
+- Screen readers get a labelled `role="timer"` region; the log survives a reload
+
+**Habits** is fully built:
+
+- **Daily habits with a 7-day check grid** — tap a day cell (48px, `role="checkbox"`
+  with a full date label) to check in or out; today is ringed in blue
+- **Streak counter** — current streak in days, plus the best-ever run and a
+  `n/7 this week · N total` summary; a streak survives until you miss a whole day
+- **Add / edit / delete** — a composer with a colour picker, inline editing of name
+  and colour, and a delete confirmation with an **undo** toast
+- **Seeds 2 sample habits** ("Drink 2L water" with a live 3-day streak, "Read 20 pages")
+
+**Notes** is fully built:
+
+- **Sticky-note cards in six colours** — the composer picks the paper colour, and the
+  cards keep the tilted, taped-down sticky look
+- **Pin, edit and delete** — pinned notes float to the top with a Pinned sticker,
+  a modal edits title/body/colour, and deleting asks for confirmation and offers
+  **undo**
+- **Masonry-style layout** — CSS multi-column flow (1 → 2 → 3 columns) with
+  `break-inside-avoid` cards so notes tile instead of forming rows
+- Notes are ordered pinned first, then most recently updated
+
+**Settings** is fully built:
+
+- **Dark mode** — Light/Dark toggles wired to the same theme hook as the header
+  button; the choice is persisted with everything else
+- **Export all data as JSON** — downloads a dated
+  `to-do-list-backup-YYYY-MM-DD.json` envelope containing tasks, categories, habits,
+  notes, focus sessions and settings
+- **Import JSON** — accepts the backup envelope or a raw state dump, validates it,
+  reports what it restored, and refuses bad JSON, empty files and unrelated JSON with
+  plain-language errors (existing data untouched)
+- **Reset data with confirmation** — a modal spells out exactly what will be lost
+  ("1 notes and 3 focus sessions…"), then restores the seeded samples and keeps your
+  current theme
+- **Your data panel** — live counts and an estimated size for every collection
+
 ## Folders
 
 ```
 src/
   components/  # design system + app shell + tasks/ calendar/ dashboard/ categories/
+               # habits/ notes/
   pages/       # route pages
   store/       # zustand persist store (localStorage)
   hooks/       # useTheme, useToast, useMediaQuery, useTasks
