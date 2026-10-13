@@ -228,7 +228,7 @@ Every push to `main` builds a debug APK in GitHub Actions
    `adb install -r app-debug.apk`). Android will ask you to allow installs from
    that source.
 
-The workflow installs Node 22 + Java 17, runs `npm ci`, `npm run build` and
+The workflow installs Node 22 + Java 21, runs `npm ci`, `npm run build` and
 `npx cap sync android`, then `./gradlew assembleDebug` in `android/` and uploads the
 result. Artifacts are kept for 30 days. It is a **debug** build — signed with the
 debug key, so it is for sideloading and testing, not for publishing to Play.
