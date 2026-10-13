@@ -199,6 +199,10 @@ npm run open:android  # open the native project in Android Studio
 npm run assets:android # regenerate launcher icons + splash screens
 ```
 
+Deployment is a plain static host: `vercel.json` rewrites every path to
+`/index.html` (Vercel serves a real file first when one exists), so refreshing a
+deep link like `/habits` no longer 404s.
+
 ## Android app (Capacitor)
 
 The same web build ships as a native Android app — `android/` is the committed
@@ -208,6 +212,26 @@ Capacitor project (`com.dawood.brutaltodo`, app name **BrutalTodo**, web dir `di
 npm run build:android     # build the web app, then sync it into android/
 npm run open:android      # open Android Studio, then Run ▶
 ```
+
+### Download the APK (no Android Studio needed)
+
+Every push to `main` builds a debug APK in GitHub Actions
+(`.github/workflows/android-apk.yml`), and you can trigger one by hand:
+
+1. Open the repo's **Actions** tab.
+2. Pick the **Android APK** workflow on the left — it runs on every push to `main`,
+   so the newest run is usually already there.
+3. To build on demand instead, click **Run workflow ▸ Run workflow** (branch `main`).
+4. Open the finished run and scroll to **Artifacts** at the bottom.
+5. Download **`BrutalTodo-debug-apk`** — a zip containing **`app-debug.apk`**.
+6. Unzip it, then install the APK on the phone (tap it in Files, or
+   `adb install -r app-debug.apk`). Android will ask you to allow installs from
+   that source.
+
+The workflow installs Node 20 + Java 17, runs `npm ci`, `npm run build` and
+`npx cap sync android`, then `./gradlew assembleDebug` in `android/` and uploads the
+result. Artifacts are kept for 30 days. It is a **debug** build — signed with the
+debug key, so it is for sideloading and testing, not for publishing to Play.
 
 Everything below is a no-op in the browser, so one codebase serves both.
 
