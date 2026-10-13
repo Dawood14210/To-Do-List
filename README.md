@@ -38,7 +38,27 @@ plus the shell: `Layout` / `Header` / `Sidebar` / `BottomNav`.
 
 ## Pages (placeholders for now)
 
-Dashboard · Tasks · Calendar · Focus · Habits · Notes · Settings
+Dashboard · Calendar · Focus · Habits · Notes · Settings
+
+**Tasks** is fully built:
+
+- **Quick-add with natural language** — `"Submit report tomorrow 5pm !high #study"`
+  parses dates (today/tomorrow/weekdays/`next monday`), times (`5pm`, `17:30`, `noon`),
+  `!priority` and `#category`, with a live parse preview
+- **Full task model** — title, description, due date + time, priority stickers
+  (Low/Med/High), category, subtasks with progress bar, repeat
+  (none/daily/weekly/monthly), createdAt, completedAt
+- Add / edit (modal) / delete / complete — bold checkmark, animated strike-through
+- Drag-and-drop reordering (`@dnd-kit`), keyboard accessible, manual sort mode
+- Search + filters (status, priority, category, due date range) + sort (manual, due,
+  priority, created)
+- Undo toasts after delete or complete (single and bulk)
+- Bulk select mode: select all/none, bulk complete, bulk delete
+- Red **OVERDUE** stamp on late tasks
+- Completing a recurring task spawns the next occurrence (undo removes it)
+- Confetti when a high-priority task is completed
+- Funny empty state: CSS shapes + "NOTHING TO DO. SUSPICIOUS."
+- Seeds 5 sample tasks + Study/Personal/Health categories on first load
 
 ## Folders
 

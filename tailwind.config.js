@@ -52,6 +52,7 @@ export default {
         blue: '#4D9CFF',
         mint: '#7CFFB2',
         orange: '#FF9F43',
+        red: '#FF4D4D',
         ink: '#000',
       },
       keyframes: {
