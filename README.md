@@ -40,7 +40,7 @@ plus the shell: `Layout` / `Header` / `Sidebar` / `BottomNav`.
 ## Layout
 
 - **Desktop:** left sidebar with chunky nav blocks
-- **Mobile:** bottom tab bar with big icons (≥48px tap targets, scrollable on tiny screens)
+- **Mobile:** five-tab bottom bar (Dashboard, Tasks, Calendar, Focus, More). "More" opens a bottom sheet with a 2×2 grid for Categories, Habits, Notes and Settings. Tabs are ≥56px tall, and the Android back button closes the sheet first.
 - **Header:** app name in a yellow block with a thick border + today's date in mono
 
 ## Pages

@@ -132,7 +132,7 @@ export default function TasksPage() {
     <div className="space-y-5">
       {/* Page header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl uppercase leading-none sm:text-4xl">Tasks</h1>
           <Sticker color="pink" rotate={-3}>
             {counts.shown}/{counts.total} shown
@@ -140,7 +140,7 @@ export default function TasksPage() {
         </div>
         <div className="flex items-center gap-2">
           {counts.overdue > 0 ? (
-            <span className="inline-flex -rotate-2 items-center rounded-md border-2 border-red bg-red px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-brutal-sm">
+            <span className="inline-flex md:-rotate-2 items-center rounded-md border-2 border-red bg-red px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-brutal-sm">
               {counts.overdue} overdue
             </span>
           ) : null}

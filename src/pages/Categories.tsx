@@ -118,7 +118,7 @@ export default function CategoriesPage() {
     <div className="space-y-5">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl uppercase leading-none sm:text-4xl">Categories</h1>
           <Sticker color="orange" rotate={-3}>
             {categories.length} defined
@@ -159,7 +159,7 @@ export default function CategoriesPage() {
           />
 
           <div className="flex justify-end">
-            <BrutalButton type="submit" variant="mint" disabled={!draftName.trim()}>
+            <BrutalButton type="submit" variant="pink" disabled={!draftName.trim()}>
               <Plus aria-hidden="true" size={18} strokeWidth={3} />
               Create category
             </BrutalButton>

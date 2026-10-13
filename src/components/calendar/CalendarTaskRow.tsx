@@ -97,7 +97,7 @@ export function CalendarTaskRow({
             {overdue ? (
               <span
                 aria-label="Overdue"
-                className="inline-flex -rotate-3 items-center gap-1 rounded-md border-2 border-red bg-red px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white shadow-brutal-sm"
+                className="inline-flex md:-rotate-3 items-center gap-1 rounded-md border-2 border-red bg-red px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white shadow-brutal-sm"
               >
                 ⚠ Overdue
               </span>

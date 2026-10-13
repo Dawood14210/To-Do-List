@@ -79,14 +79,14 @@ export default function DashboardPage() {
     <div className="space-y-5">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl uppercase leading-none sm:text-4xl">Dashboard</h1>
           <Sticker color="yellow" rotate={-3}>
             {format(new Date(), 'EEE d MMM')}
           </Sticker>
         </div>
         <BrutalButton
-          variant="ink"
+          variant="pink"
           onClick={() => {
             setEditing(null);
             setFormOpen(true);
@@ -117,7 +117,7 @@ export default function DashboardPage() {
       ) : null}
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid max-w-full grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Due today"
           value={stats.today.total}

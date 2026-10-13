@@ -68,7 +68,7 @@ export function TaskItem({
       style={style}
       className={cn(
         'relative rounded-md border bg-white text-ink shadow-brutal-sm dark:bg-black dark:text-white dark:shadow-brutal-sm-invert',
-        isDragging && 'z-20 rotate-[1.5deg] shadow-brutal dark:shadow-brutal-invert',
+        isDragging && 'z-20 md:rotate-[1.5deg] shadow-brutal dark:shadow-brutal-invert',
         task.done && 'opacity-80'
       )}
     >
@@ -147,7 +147,7 @@ export function TaskItem({
             {overdue ? (
               <span
                 aria-label="Overdue"
-                className="inline-flex -rotate-6 items-center rounded-md border-2 border-red bg-red px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-widest text-white shadow-brutal-sm animate-brutal-pop"
+                className="inline-flex md:-rotate-6 items-center rounded-md border-2 border-red bg-red px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-widest text-white shadow-brutal-sm animate-brutal-pop"
               >
                 Overdue
               </span>

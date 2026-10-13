@@ -149,7 +149,7 @@ export default function SettingsPage() {
     <div className="space-y-5">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl uppercase leading-none sm:text-4xl">Settings</h1>
           <Sticker color="yellow" rotate={-3}>
             {theme === 'dark' ? 'Dark' : 'Light'} mode

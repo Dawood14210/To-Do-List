@@ -108,7 +108,7 @@ export function UpcomingList({ tasks, categoryById, onComplete, onEdit }: Upcomi
                       {task.title}
                     </span>
                     {overdue ? (
-                      <span className="inline-flex -rotate-2 items-center rounded-md border-2 border-red bg-red px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white">
+                      <span className="inline-flex md:-rotate-2 items-center rounded-md border-2 border-red bg-red px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white">
                         ⚠ Overdue
                       </span>
                     ) : null}

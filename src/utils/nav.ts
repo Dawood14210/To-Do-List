@@ -21,3 +21,15 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/notes', label: 'Notes', icon: StickyNote, color: 'bg-cream' },
   { to: '/settings', label: 'Settings', icon: Settings, color: 'bg-yellow' },
 ];
+
+/** Routes on the mobile tab bar (the fifth tab, "More", opens the sheet). */
+const TAB_ROUTES = ['/', '/tasks', '/calendar', '/focus'];
+
+/** Routes listed in the mobile "More" sheet. */
+const MORE_ROUTES = ['/categories', '/habits', '/notes', '/settings'];
+
+/** Mobile bottom tabs, in display order. */
+export const MOBILE_TABS: NavItem[] = NAV_ITEMS.filter((item) => TAB_ROUTES.includes(item.to));
+
+/** Items behind the mobile "More" bottom sheet, in display order. */
+export const MORE_ITEMS: NavItem[] = NAV_ITEMS.filter((item) => MORE_ROUTES.includes(item.to));

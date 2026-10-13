@@ -55,7 +55,7 @@ export function AgendaView({
               silence, or plant something on the calendar.
             </p>
             <BrutalButton
-              variant="yellow"
+              variant="pink"
               className="mt-4"
               onClick={() => onAddTask(selectedDay ?? toISODate(new Date()))}
             >

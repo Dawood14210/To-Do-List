@@ -135,7 +135,7 @@ export function DayPanel({
               <ChevronLeft aria-hidden="true" size={20} strokeWidth={3} />
             </BrutalButton>
             <BrutalButton
-              variant="yellow"
+              variant="pink"
               size="sm"
               onClick={() => onAddTask(dayKey)}
               className="flex-1"
@@ -162,7 +162,7 @@ export function DayPanel({
               <p className="font-body text-sm opacity-70">
                 A rare blank square. Add a task — the date is already filled in.
               </p>
-              <BrutalButton variant="mint" onClick={() => onAddTask(dayKey)}>
+              <BrutalButton variant="pink" onClick={() => onAddTask(dayKey)}>
                 <CalendarPlus aria-hidden="true" size={18} strokeWidth={3} />
                 Add task
               </BrutalButton>

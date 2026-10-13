@@ -4,7 +4,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 import { cn } from '../utils/cn';
 
 const FIELD_CLASSES =
-  'w-full min-h-12 rounded-md border bg-white text-ink shadow-brutal-sm dark:bg-black dark:text-white dark:shadow-brutal-sm-invert ' +
+  'w-full max-w-full min-h-12 rounded-md border bg-white text-ink shadow-brutal-sm dark:bg-black dark:text-white dark:shadow-brutal-sm-invert ' +
   'px-4 py-3 font-body text-base placeholder:text-ink/40 dark:placeholder:text-white/40';
 
 interface FieldShellProps {

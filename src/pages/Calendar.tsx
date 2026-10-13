@@ -284,7 +284,7 @@ export default function CalendarPage() {
       <div className="space-y-5">
         {/* Page header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl uppercase leading-none sm:text-4xl">Calendar</h1>
             <Sticker color="blue" rotate={-3}>
               {visibleTasks.length} this {view === 'month' ? 'month' : view === 'week' ? 'week' : 'stretch'}
@@ -296,13 +296,13 @@ export default function CalendarPage() {
               <button
                 type="button"
                 onClick={() => setView('agenda')}
-                className="inline-flex min-h-12 -rotate-1 items-center gap-1.5 rounded-md border-2 border-red bg-red px-2.5 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-brutal-sm"
+                className="inline-flex min-h-12 md:-rotate-1 items-center gap-1.5 rounded-md border-2 border-red bg-red px-2.5 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-brutal-sm"
                 title="Jump to the overdue list"
               >
                 {overdueTasks.length} overdue
               </button>
             ) : null}
-            <BrutalButton variant="mint" onClick={() => openNewTask()}>
+            <BrutalButton variant="pink" onClick={() => openNewTask()}>
               <CalendarPlus aria-hidden="true" size={18} strokeWidth={3} />
               New
             </BrutalButton>
@@ -486,7 +486,7 @@ function DragOverlayPreview({ task, category }: { task?: Task; category?: Catego
   const overdue = isOverdue(task);
 
   return (
-    <div className="pointer-events-none w-56 -rotate-2">
+    <div className="pointer-events-none w-56 md:-rotate-2">
       <div
         className={cn(
           'flex items-center gap-1.5 rounded-sm border-2 px-2 py-1.5 text-xs font-bold shadow-brutal',

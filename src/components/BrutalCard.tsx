@@ -49,7 +49,7 @@ export const BrutalCard = forwardRef<HTMLDivElement, BrutalCardProps>(
       <Tag
         ref={ref}
         className={cn(
-          'rounded-md border shadow-brutal dark:shadow-brutal-invert',
+          'max-w-full rounded-md border shadow-brutal dark:shadow-brutal-invert',
           COLOR_CLASSES[color],
           PADDING_CLASSES[padding],
           className

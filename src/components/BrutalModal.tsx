@@ -69,7 +69,7 @@ export function BrutalModal({
         aria-label={title}
         tabIndex={-1}
         className={cn(
-          'relative max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-md border bg-cream text-ink outline-none',
+          'relative max-h-[85vh] w-full max-w-[min(32rem,100%)] overflow-y-auto rounded-md border bg-cream text-ink outline-none',
           'shadow-brutal dark:shadow-brutal-invert dark:bg-black dark:text-white',
           'animate-brutal-pop',
           className

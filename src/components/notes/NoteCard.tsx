@@ -26,7 +26,7 @@ export function NoteCard({ note, onTogglePin, onEdit, onDelete }: NoteCardProps)
         'transition-transform duration-100',
         note.color,
         note.pinned
-          ? '-rotate-1 border-4 shadow-brutal'
+          ? 'md:-rotate-1 border-4 shadow-brutal'
           : 'rotate-0 border-black shadow-brutal-sm dark:border-white dark:shadow-brutal-sm-invert'
       )}
     >

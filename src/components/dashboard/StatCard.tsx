@@ -47,7 +47,7 @@ export function StatCard({
       onClick={onClick}
       aria-label={`${label}: ${value}. ${hint}`}
       className={cn(
-        'flex w-full flex-col items-start gap-2 rounded-md border bg-white p-3 text-left text-ink sm:p-4',
+        'flex w-full min-w-0 max-w-full flex-col items-start gap-2 rounded-md border bg-white p-3 text-left text-ink sm:p-4',
         'shadow-brutal transition-transform duration-100 dark:bg-black dark:text-white dark:shadow-brutal-invert',
         'hoverable:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none',
         danger && 'border-red'

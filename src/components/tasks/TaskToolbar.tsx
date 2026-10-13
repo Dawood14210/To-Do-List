@@ -72,7 +72,7 @@ export function TaskToolbar({ onNewTask }: TaskToolbarProps) {
           >
             <Tags aria-hidden="true" size={20} strokeWidth={2.5} />
           </BrutalButton>
-          <BrutalButton variant="ink" onClick={onNewTask}>
+          <BrutalButton variant="pink" onClick={onNewTask}>
             <Plus aria-hidden="true" size={18} strokeWidth={3} />
             New
           </BrutalButton>

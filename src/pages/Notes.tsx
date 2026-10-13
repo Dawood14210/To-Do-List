@@ -70,7 +70,7 @@ export default function NotesPage() {
     <div className="space-y-5">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl uppercase leading-none sm:text-4xl">Notes</h1>
           <Sticker color="cream" rotate={-3}>
             {notes.length} notes
@@ -116,7 +116,7 @@ export default function NotesPage() {
           <ColorPicker label="Paper colour" value={color} onChange={setColor} previewName={title} />
 
           <div className="flex justify-end">
-            <BrutalButton type="submit" variant="yellow" disabled={!title.trim()}>
+            <BrutalButton type="submit" variant="pink" disabled={!title.trim()}>
               <Plus aria-hidden="true" size={18} strokeWidth={3} />
               Stick it on the wall
             </BrutalButton>

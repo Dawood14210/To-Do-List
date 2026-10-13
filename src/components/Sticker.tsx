@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode } from 'react';
+import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 import { cn } from '../utils/cn';
 
 export type StickerColor =
@@ -24,7 +24,7 @@ const COLOR_CLASSES: Record<StickerColor, string> = {
 
 interface StickerProps extends HTMLAttributes<HTMLSpanElement> {
   color?: StickerColor;
-  /** Slight playful rotation, in degrees. 0 = straight. */
+  /** Slight playful rotation, in degrees. 0 = straight. Only applied from 768px up. */
   rotate?: number;
   /** Soften to the small shadow (default is the 3px hard shadow). */
   small?: boolean;
@@ -50,13 +50,14 @@ export function Sticker({
         'inline-flex items-center gap-1 rounded-md border px-2.5 py-1',
         'font-mono text-[11px] font-bold uppercase tracking-wider',
         small ? 'shadow-brutal-sm dark:shadow-brutal-sm-invert' : 'shadow-brutal dark:shadow-brutal-invert',
+        'sticker-tilt',
         COLOR_CLASSES[color],
         className
       )}
       style={{
-        transform: rotate ? `rotate(${rotate}deg)` : undefined,
+        '--tilt': `${rotate}deg`,
         ...style,
-      }}
+      } as CSSProperties}
       {...rest}
     >
       {children}
