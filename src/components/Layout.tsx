@@ -28,7 +28,7 @@ export function Layout({ onToggleTheme }: LayoutProps) {
 
           <main
             id="main-content"
-            className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 pb-32 lg:pb-12"
+            className="px-safe mx-auto w-full max-w-5xl flex-1 px-4 py-6 pb-safe-tabbar"
           >
             <Outlet />
           </main>

@@ -15,6 +15,8 @@ interface TaskFormModalProps {
   open: boolean;
   /** Null = create mode. */
   task: Task | null;
+  /** Create mode only: pre-fill the due date ("yyyy-MM-dd"), e.g. from the calendar. */
+  defaultDate?: string | null;
   onClose: () => void;
 }
 
@@ -37,12 +39,12 @@ const REPEATS: Array<{ value: Repeat; label: string }> = [
   { value: 'monthly', label: 'Monthly' },
 ];
 
-function toFormState(task: Task | null): FormState {
+function toFormState(task: Task | null, defaultDate?: string | null): FormState {
   if (!task) {
     return {
       title: '',
       description: '',
-      date: '',
+      date: defaultDate ?? '',
       time: '',
       priority: 'medium',
       categoryId: '',
@@ -65,20 +67,20 @@ function toFormState(task: Task | null): FormState {
 
 /** Add/edit every task field: title, description, due date+time,
  *  priority stickers, category, subtasks and repeat. */
-export function TaskFormModal({ open, task, onClose }: TaskFormModalProps) {
+export function TaskFormModal({ open, task, defaultDate, onClose }: TaskFormModalProps) {
   const categories = useAppStore((state) => state.categories);
   const addTask = useAppStore((state) => state.addTask);
   const updateTask = useAppStore((state) => state.updateTask);
 
-  const [form, setForm] = useState<FormState>(() => toFormState(task));
+  const [form, setForm] = useState<FormState>(() => toFormState(task, defaultDate));
   const [newSubtask, setNewSubtask] = useState('');
 
   useEffect(() => {
     if (open) {
-      setForm(toFormState(task));
+      setForm(toFormState(task, defaultDate));
       setNewSubtask('');
     }
-  }, [open, task]);
+  }, [open, task, defaultDate]);
 
   const patch = (updates: Partial<FormState>) => setForm((f) => ({ ...f, ...updates }));
 
@@ -186,7 +188,7 @@ export function TaskFormModal({ open, task, onClose }: TaskFormModalProps) {
                     meta.color,
                     active
                       ? 'shadow-brutal-sm dark:shadow-brutal-sm-invert -translate-y-0.5'
-                      : 'opacity-60 hover:opacity-100'
+                      : 'opacity-60 hoverable:opacity-100'
                   )}
                 >
                   {meta.long}
@@ -203,7 +205,7 @@ export function TaskFormModal({ open, task, onClose }: TaskFormModalProps) {
             value={form.categoryId}
             onChange={(event) => patch({ categoryId: event.target.value })}
           >
-            <option value="">No category</option>
+            <option value="">Uncategorized</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
@@ -272,7 +274,7 @@ export function TaskFormModal({ open, task, onClose }: TaskFormModalProps) {
                     onClick={() =>
                       patch({ subtasks: form.subtasks.filter((s) => s.id !== sub.id) })
                     }
-                    className="grid h-12 w-12 shrink-0 place-items-center rounded-md hover:bg-pink"
+                    className="grid h-12 w-12 shrink-0 place-items-center rounded-md hoverable:bg-pink"
                   >
                     <Trash2 aria-hidden="true" size={16} strokeWidth={2.5} />
                   </button>

@@ -33,7 +33,7 @@ export function Toast() {
   return (
     <div
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-4 bottom-24 z-[60] flex flex-col items-stretch gap-3 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[380px]"
+      className="pb-safe pointer-events-none fixed inset-x-4 bottom-24 z-[60] flex flex-col items-stretch gap-3 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[380px]"
     >
       {toasts.map((toast) => {
         const Icon = TYPE_ICONS[toast.type];
@@ -66,7 +66,7 @@ export function Toast() {
               type="button"
               onClick={() => dismissToast(toast.id)}
               aria-label="Dismiss notification"
-              className="-mr-1 grid h-12 w-12 shrink-0 place-items-center rounded-md transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-1"
+              className="-mr-1 grid h-12 w-12 shrink-0 place-items-center rounded-md transition-transform duration-100 hoverable:-translate-y-0.5 active:translate-y-1"
             >
               <X aria-hidden="true" size={20} strokeWidth={3} />
             </button>

@@ -10,7 +10,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-black bg-white dark:border-white dark:bg-black lg:hidden"
+      className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-black bg-white dark:border-white dark:bg-black lg:hidden"
     >
       <ul className="no-scrollbar flex overflow-x-auto">
         {NAV_ITEMS.map(({ to, label, icon: Icon, color, end }) => (
@@ -23,7 +23,7 @@ export function BottomNav() {
                   'flex min-h-16 flex-col items-center justify-center gap-0.5 px-1 py-2 transition-colors',
                   isActive
                     ? cn(color, 'text-ink font-bold dark:text-ink')
-                    : 'text-ink/60 hover:text-ink dark:text-white/60 dark:hover:text-white'
+                    : 'text-ink/60 hoverable:text-ink dark:text-white/60 dark:hoverable:text-white'
                 )
               }
             >

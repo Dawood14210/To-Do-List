@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { BrutalButton } from './BrutalButton';
+import { useAndroidBack } from '../hooks/useAndroidBack';
 import { cn } from '../utils/cn';
 
 interface BrutalModalProps {
@@ -28,6 +29,9 @@ export function BrutalModal({
   className,
 }: BrutalModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+
+  // Android back closes the dialog before anything else happens.
+  useAndroidBack(open, onClose);
 
   useEffect(() => {
     if (!open) return;

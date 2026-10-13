@@ -1,4 +1,15 @@
 /** @type {import('tailwindcss').Config} */
+import plugin from 'tailwindcss/plugin';
+
+/**
+ * On touch screens `:hover` latches after a tap, so every hover style is
+ * written through this variant: it only compiles for devices with a real
+ * pointer. Tap feedback uses the `active:` states instead.
+ */
+const hoverable = plugin(({ addVariant }) => {
+  addVariant('hoverable', '@media (hover: hover) and (pointer: fine) { &:hover }');
+});
+
 export default {
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{ts,tsx,js,jsx}'],
@@ -71,5 +82,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [hoverable],
 };

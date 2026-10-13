@@ -20,13 +20,13 @@ export function Header({ onToggleTheme }: HeaderProps) {
   const handleToggleTheme = onToggleTheme ?? toggleTheme;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-black bg-cream dark:border-white dark:bg-black">
+    <header className="pt-safe sticky top-0 z-40 border-b border-black bg-cream dark:border-white dark:bg-black">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3">
         {/* App name in a yellow block */}
         <Link
           to="/"
           aria-label="To-Do List — go to dashboard"
-          className="rounded-md border border-black bg-yellow px-3 py-1.5 text-ink shadow-brutal-sm transition-transform duration-100 hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none dark:border-white dark:shadow-brutal-sm-invert sm:px-4 sm:py-2"
+          className="rounded-md border border-black bg-yellow px-3 py-1.5 text-ink shadow-brutal-sm transition-transform duration-100 hoverable:-translate-x-0.5 hoverable:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none dark:border-white dark:shadow-brutal-sm-invert sm:px-4 sm:py-2"
         >
           <span className="font-heading text-base uppercase leading-none tracking-tight sm:text-xl">
             To-Do List

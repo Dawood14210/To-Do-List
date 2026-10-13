@@ -65,7 +65,7 @@ export const BrutalButton = forwardRef<HTMLButtonElement, BrutalButtonProps>(
           'inline-flex select-none items-center justify-center rounded-md border font-heading uppercase tracking-wide',
           'shadow-brutal dark:shadow-brutal-invert',
           'transition-transform duration-100 ease-out',
-          'hover:-translate-x-0.5 hover:-translate-y-0.5',
+          'hoverable:-translate-x-0.5 hoverable:-translate-y-0.5',
           'active:translate-x-1 active:translate-y-1 active:shadow-none',
           'disabled:pointer-events-none disabled:opacity-50',
           VARIANT_CLASSES[variant],

@@ -20,6 +20,7 @@ import { useFilteredTasks } from '../hooks/useTasks';
 import { useToast } from '../hooks/useToast';
 import type { Task } from '../types';
 import { fireConfetti } from '../utils/confetti';
+import { hapticLight } from '../utils/native';
 import { BrutalButton } from '../components/BrutalButton';
 import { Sticker } from '../components/Sticker';
 import { QuickAddBar } from '../components/tasks/QuickAddBar';
@@ -62,6 +63,7 @@ export default function TasksPage() {
 
   const handleToggleDone = (task: Task) => {
     if (!task.done) {
+      void hapticLight(); // light tap feedback when a task is ticked off
       const spawnedId = setTaskDone(task.id, true);
       if (task.priority === 'high') fireConfetti();
       const message = spawnedId
@@ -85,6 +87,7 @@ export default function TasksPage() {
       toast('Nothing selected is unfinished', 'info');
       return;
     }
+    void hapticLight();
     ids.forEach((id) => setTaskDone(id, true));
     if (selectedTasks.some((t) => t.priority === 'high')) fireConfetti();
     setTaskView({ selected: [], selectMode: false });

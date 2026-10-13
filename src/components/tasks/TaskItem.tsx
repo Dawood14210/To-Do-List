@@ -80,7 +80,7 @@ export function TaskItem({
             {...attributes}
             {...listeners}
             aria-label={`Reorder ${task.title}`}
-            className="hidden h-12 w-8 shrink-0 cursor-grab touch-none items-center justify-center rounded-md border border-transparent hover:border-black hover:bg-cream active:cursor-grabbing sm:flex dark:hover:border-white dark:hover:bg-black"
+            className="hidden h-12 w-8 shrink-0 cursor-grab touch-none items-center justify-center rounded-md border border-transparent hoverable:border-black hoverable:bg-cream active:cursor-grabbing sm:flex dark:hoverable:border-white dark:hoverable:bg-black"
           >
             <GripVertical aria-hidden="true" size={20} strokeWidth={2.5} className="opacity-50" />
           </button>
@@ -114,7 +114,7 @@ export function TaskItem({
             onClick={() => onToggleDone(task)}
             className={cn(
               'grid h-12 w-12 shrink-0 place-items-center rounded-md border transition-colors duration-100',
-              task.done ? 'bg-mint' : 'bg-cream hover:bg-yellow dark:bg-black'
+              task.done ? 'bg-mint' : 'bg-cream hoverable:bg-yellow dark:bg-black'
             )}
           >
             <Check
@@ -216,7 +216,7 @@ export function TaskItem({
                       aria-checked={sub.done}
                       aria-label={`${sub.done ? 'Uncheck' : 'Check'} subtask ${sub.title}`}
                       onClick={() => onToggleSubtask(task.id, sub.id)}
-                      className="flex min-h-12 w-full items-center gap-2 rounded-md px-1 text-left hover:bg-cream dark:hover:bg-black"
+                      className="flex min-h-12 w-full items-center gap-2 rounded-md px-1 text-left hoverable:bg-cream dark:hoverable:bg-black"
                     >
                       <span
                         className={cn(
