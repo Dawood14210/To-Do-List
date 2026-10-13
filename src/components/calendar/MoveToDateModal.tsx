@@ -75,7 +75,7 @@ export function MoveToDateModal({ task, onClose, onConfirm }: MoveToDateModalPro
                 'inline-flex min-h-12 items-center rounded-md border px-4 font-mono text-xs font-bold uppercase tracking-wider transition-transform duration-100',
                 value === preset.key
                   ? 'bg-blue text-ink shadow-brutal-sm dark:shadow-brutal-sm-invert'
-                  : 'bg-white text-ink hover:bg-yellow dark:bg-black dark:text-white'
+                  : 'bg-white text-ink hoverable:bg-yellow dark:bg-black dark:text-white'
               )}
             >
               {preset.label}

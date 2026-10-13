@@ -13,6 +13,7 @@ Hard offset shadows, 3px black borders, zero blur, zero gradients.
 | `lucide-react` | Big chunky nav/UI icons |
 | `canvas-confetti` | Celebrations (welcome burst, theme toggle) |
 | `react-router-dom` | Page routing |
+| `@capacitor/*` | Android shell: core/cli/android plus local-notifications, filesystem, share, app, haptics, status-bar |
 
 ## Design system (see `tailwind.config.js`)
 
@@ -22,6 +23,12 @@ Hard offset shadows, 3px black borders, zero blur, zero gradients.
 - **Fonts:** Archivo Black (headings), Space Grotesk (body), Space Mono (dates/labels)
 - **Radius:** clamped to max 6px; no gradients, no blur, no soft shadows
 - **Buttons:** lift `-2px` on hover, slam to `translate(4px, 4px)` + `shadow: 0` on active
+- **Hover styles use the `hoverable:` variant** (a `(hover: hover) and (pointer: fine)`
+  media query) so they never latch after a tap on a touch screen; tap feedback comes
+  from the `active:` states
+- **Safe areas:** `px-safe` / `pt-safe` / `pb-safe` / `pb-safe-tabbar` wrap
+  `env(safe-area-inset-*)` so nothing hides behind a notch, the status bar or the
+  Android gesture bar
 - **Dark mode:** black background, neon accents, white borders/shadows — toggle in the header
 - **Focus:** thick 3px visible outlines everywhere (`:focus-visible`)
 
@@ -171,18 +178,81 @@ src/
                # habits/ notes/
   pages/       # route pages
   store/       # zustand persist store (localStorage)
-  hooks/       # useTheme, useToast, useMediaQuery, useTasks
-  utils/       # cn, dates, calendar, tasks, confetti, nav, id
+  hooks/       # useTheme, useToast, useMediaQuery, useTasks, useAndroidBack
+  utils/       # cn, dates, calendar, tasks, confetti, nav, id, focus, habits, sound,
+               # native (haptics/status bar), reminders, fileTransfer, backButton
   types/       # shared TypeScript types
+
+android/       # Capacitor Android project (committed)
+tools/         # generate-android-assets.py — icons + splash, no dependencies
 ```
 
 ## Develop
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
-npm run build    # type-check + production build
+npm run dev           # http://localhost:5173
+npm run build         # type-check + production build
+
+npm run build:android # vite build + npx cap sync android
+npm run open:android  # open the native project in Android Studio
+npm run assets:android # regenerate launcher icons + splash screens
 ```
+
+## Android app (Capacitor)
+
+The same web build ships as a native Android app — `android/` is the committed
+Capacitor project (`com.dawood.brutaltodo`, app name **BrutalTodo**, web dir `dist`).
+
+```bash
+npm run build:android     # build the web app, then sync it into android/
+npm run open:android      # open Android Studio, then Run ▶
+```
+
+Everything below is a no-op in the browser, so one codebase serves both.
+
+**Reminders that fire when the app is closed**
+- `src/utils/reminders.ts` derives one reminder per task that has a due date *and*
+  time, and hands them to `@capacitor/local-notifications` so Android's alarm
+  manager delivers them — app closed, phone asleep, or after a reboot
+- **Permission is requested on first use** (the first task that needs a reminder)
+  and never asked twice; if it is refused, nothing is scheduled and the app carries
+  on quietly
+- **The store is watched**, so adding, editing, completing, deleting or undoing a
+  task re-schedules automatically — stale alarms are cancelled first, so an edited
+  due time never fires twice
+- Reminders also resync every time the app returns to the foreground, and tapping
+  one deep-links into the task list
+- Copy: the task title in bold, with `Due 5:00 PM · High priority · …` underneath;
+  a custom 24dp check silhouette (`ic_stat_brutal`) is the status bar icon
+- Only the next 30 days are queued; tasks without a time, and anything already past,
+  are skipped
+
+**Export / import through the device**
+- Export writes the same JSON backup with the **Filesystem** plugin (app storage,
+  falling back to the cache directory) and then opens the **Share** sheet, so it can
+  go to Drive, Gmail or Files
+- Backups already on the device are listed in Settings and can be **restored in-app**,
+  no file picker needed; the browser keeps the classic download / file-picker path
+
+**Android back button**
+- `src/utils/backButton.ts` keeps a last-in-first-out stack of open overlays:
+  back closes the topmost modal first, then walks the router history, then exits
+- Every overlay registers through `useAndroidBack()` (all `BrutalModal`s do), so new
+  dialogs get the behaviour for free
+
+**Native polish**
+- **Haptics:** a light tap when a task is completed (medium/success helpers also
+  exported), silently skipped on the web
+- **Status bar:** follows the theme — brand yellow with dark icons in light mode,
+  black with light icons in dark mode; the launch theme paints the same colours so
+  there is no white flash (`@capacitor/status-bar`, plus the `theme-color` meta tag)
+- **Launcher icon + splash:** a yellow block with a thick black border and a chunky
+  check, at every density. `tools/generate-android-assets.py` draws them from scratch
+  (pure standard library — no Pillow, no design files) and `npm run assets:android`
+  regenerates them
+- Safe-area padding and the `hoverable:` hover guard keep the layout honest on a
+  phone (see the design system notes above)
 
 ## Accessibility
 

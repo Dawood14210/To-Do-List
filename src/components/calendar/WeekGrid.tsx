@@ -96,7 +96,7 @@ function WeekDayColumn({
         aria-pressed={selected}
         className={cn(
           'flex w-full items-center justify-between gap-2 rounded-t-sm px-2 py-2 text-left transition-colors duration-100',
-          today ? 'bg-blue' : 'bg-cream hover:bg-yellow dark:bg-black dark:hover:bg-yellow/20'
+          today ? 'bg-blue' : 'bg-cream hoverable:bg-yellow dark:bg-black dark:hoverable:bg-yellow/20'
         )}
       >
         <span className="flex items-baseline gap-2">
@@ -145,7 +145,7 @@ function WeekDayColumn({
             type="button"
             onClick={onAddTask}
             aria-label={`Add a task on ${format(day, 'EEEE d MMMM')}`}
-            className="flex min-h-12 w-full items-center justify-center gap-1 rounded-md border-2 border-dashed border-black font-mono text-[11px] font-bold uppercase tracking-wider transition-colors duration-100 hover:bg-yellow dark:border-white dark:hover:bg-yellow dark:hover:text-ink"
+            className="flex min-h-12 w-full items-center justify-center gap-1 rounded-md border-2 border-dashed border-black font-mono text-[11px] font-bold uppercase tracking-wider transition-colors duration-100 hoverable:bg-yellow dark:border-white dark:hoverable:bg-yellow dark:hoverable:text-ink"
           >
             <Plus aria-hidden="true" size={14} strokeWidth={3} />
             Add

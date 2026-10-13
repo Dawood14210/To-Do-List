@@ -129,8 +129,8 @@ function MonthDayCell({
         aria-pressed={selected}
         className={cn(
           'absolute inset-0 z-0 rounded-md transition-colors duration-100',
-          'hover:bg-yellow/40 dark:hover:bg-yellow/20',
-          isOver && 'bg-transparent hover:bg-transparent'
+          'hoverable:bg-yellow/40 dark:hoverable:bg-yellow/20',
+          isOver && 'bg-transparent hoverable:bg-transparent'
         )}
       />
 

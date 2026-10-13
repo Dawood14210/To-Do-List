@@ -44,7 +44,7 @@ export function UpcomingList({ tasks, categoryById, onComplete, onEdit }: Upcomi
         </div>
         <Link
           to="/tasks"
-          className="inline-flex min-h-12 items-center gap-1.5 rounded-md border border-transparent px-2 font-mono text-[11px] font-bold uppercase tracking-wider hover:border-black hover:bg-cream dark:hover:border-white dark:hover:bg-black"
+          className="inline-flex min-h-12 items-center gap-1.5 rounded-md border border-transparent px-2 font-mono text-[11px] font-bold uppercase tracking-wider hoverable:border-black hoverable:bg-cream dark:hoverable:border-white dark:hoverable:bg-black"
         >
           View all
           <ArrowRight aria-hidden="true" size={16} strokeWidth={3} />
@@ -60,7 +60,7 @@ export function UpcomingList({ tasks, categoryById, onComplete, onEdit }: Upcomi
           </p>
           <Link
             to="/tasks"
-            className="mt-4 inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-black bg-mint px-5 font-heading text-sm uppercase tracking-wide text-ink shadow-brutal transition-transform duration-100 hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none dark:border-white dark:shadow-brutal-invert"
+            className="mt-4 inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-black bg-mint px-5 font-heading text-sm uppercase tracking-wide text-ink shadow-brutal transition-transform duration-100 hoverable:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none dark:border-white dark:shadow-brutal-invert"
           >
             Go to Tasks
           </Link>
@@ -83,7 +83,7 @@ export function UpcomingList({ tasks, categoryById, onComplete, onEdit }: Upcomi
                   onClick={() => onComplete(task)}
                   className={cn(
                     'grid h-12 w-12 shrink-0 place-items-center rounded-md border transition-colors duration-100',
-                    task.done ? 'bg-mint' : 'bg-cream hover:bg-yellow dark:bg-black'
+                    task.done ? 'bg-mint' : 'bg-cream hoverable:bg-yellow dark:bg-black'
                   )}
                 >
                   <Check
@@ -101,7 +101,7 @@ export function UpcomingList({ tasks, categoryById, onComplete, onEdit }: Upcomi
                   type="button"
                   onClick={() => onEdit(task)}
                   aria-label={`Edit ${task.title}`}
-                  className="min-w-0 flex-1 rounded-md px-1 py-2 text-left hover:bg-cream dark:hover:bg-black"
+                  className="min-w-0 flex-1 rounded-md px-1 py-2 text-left hoverable:bg-cream dark:hoverable:bg-black"
                 >
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="min-w-0 truncate text-base font-bold leading-snug">

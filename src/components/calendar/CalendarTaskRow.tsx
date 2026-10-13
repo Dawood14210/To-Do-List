@@ -58,7 +58,7 @@ export function CalendarTaskRow({
             {...listeners}
             aria-label={`Drag ${task.title} onto another day`}
             title="Drag onto another day"
-            className="hidden h-12 w-8 shrink-0 cursor-grab touch-none items-center justify-center rounded-md border border-transparent hover:border-black hover:bg-cream active:cursor-grabbing sm:flex dark:hover:border-white dark:hover:bg-black"
+            className="hidden h-12 w-8 shrink-0 cursor-grab touch-none items-center justify-center rounded-md border border-transparent hoverable:border-black hoverable:bg-cream active:cursor-grabbing sm:flex dark:hoverable:border-white dark:hoverable:bg-black"
           >
             <GripVertical aria-hidden="true" size={18} strokeWidth={2.5} className="opacity-50" />
           </button>
@@ -72,7 +72,7 @@ export function CalendarTaskRow({
           onClick={() => onToggleDone(task)}
           className={cn(
             'grid h-12 w-12 shrink-0 place-items-center rounded-md border transition-colors duration-100',
-            task.done ? 'bg-mint' : 'bg-cream hover:bg-yellow dark:bg-black'
+            task.done ? 'bg-mint' : 'bg-cream hoverable:bg-yellow dark:bg-black'
           )}
         >
           <Check
@@ -151,7 +151,7 @@ export function CalendarTaskRow({
         <button
           type="button"
           onClick={() => onEdit(task)}
-          className="inline-flex min-h-12 flex-1 items-center justify-center gap-1.5 rounded-md border-2 border-black bg-white px-2 font-mono text-[11px] font-bold uppercase tracking-wider transition-colors duration-100 hover:bg-yellow active:translate-x-0.5 active:translate-y-0.5 dark:border-white dark:bg-black dark:hover:bg-yellow dark:hover:text-ink"
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-1.5 rounded-md border-2 border-black bg-white px-2 font-mono text-[11px] font-bold uppercase tracking-wider transition-colors duration-100 hoverable:bg-yellow active:translate-x-0.5 active:translate-y-0.5 dark:border-white dark:bg-black dark:hoverable:bg-yellow dark:hoverable:text-ink"
         >
           <Pencil aria-hidden="true" size={14} strokeWidth={3} />
           Edit
@@ -159,7 +159,7 @@ export function CalendarTaskRow({
         <button
           type="button"
           onClick={() => onMove(task)}
-          className="inline-flex min-h-12 flex-1 items-center justify-center gap-1.5 rounded-md border-2 border-black bg-blue px-2 font-mono text-[11px] font-bold uppercase tracking-wider text-ink transition-colors duration-100 hover:bg-yellow active:translate-x-0.5 active:translate-y-0.5 dark:border-white"
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-1.5 rounded-md border-2 border-black bg-blue px-2 font-mono text-[11px] font-bold uppercase tracking-wider text-ink transition-colors duration-100 hoverable:bg-yellow active:translate-x-0.5 active:translate-y-0.5 dark:border-white"
         >
           <CalendarClock aria-hidden="true" size={14} strokeWidth={3} />
           Move to date

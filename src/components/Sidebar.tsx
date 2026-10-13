@@ -20,14 +20,14 @@ export function Sidebar() {
               cn(
                 'flex min-h-12 items-center gap-3 rounded-md border border-transparent px-3',
                 'font-heading text-sm uppercase tracking-wide transition-transform duration-100',
-                'hover:-translate-y-0.5',
+                'hoverable:-translate-y-0.5',
                 isActive &&
                   cn(
                     color,
                     'border-black text-ink shadow-brutal-sm dark:border-white dark:shadow-brutal-sm-invert',
                     'active:translate-x-1 active:translate-y-1 active:shadow-none'
                   ),
-                !isActive && 'text-ink hover:bg-cream dark:text-white dark:hover:bg-black'
+                !isActive && 'text-ink hoverable:bg-cream dark:text-white dark:hoverable:bg-black'
               )
             }
           >

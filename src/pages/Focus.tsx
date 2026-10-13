@@ -16,6 +16,7 @@ import type { Task } from '../types';
 import { cn } from '../utils/cn';
 import { fireConfetti } from '../utils/confetti';
 import { playChime } from '../utils/sound';
+import { hapticSuccess } from '../utils/native';
 import { PRIORITY_META } from '../utils/tasks';
 import {
   formatClock,
@@ -143,6 +144,7 @@ export default function FocusPage() {
     if (phase === 'focus') {
       logFocusSession(runningMinutes, taskId || null);
       if (soundOn) playChime('focus-end');
+      void hapticSuccess(); // a whole session's worth of buzz, on the device
       fireConfetti();
       setBanner({ kind: 'focus', minutes: runningMinutes, taskTitle: linkedTask?.title });
       setPhase('break');
@@ -273,7 +275,7 @@ export default function FocusPage() {
             type="button"
             onClick={() => setBanner(null)}
             aria-label="Dismiss banner"
-            className="grid h-12 w-12 shrink-0 place-items-center rounded-md border border-transparent hover:border-black hover:bg-white/50 dark:hover:border-white"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-md border border-transparent hoverable:border-black hoverable:bg-white/50 dark:hoverable:border-white"
           >
             <X aria-hidden="true" size={20} strokeWidth={3} />
           </button>
@@ -304,7 +306,7 @@ export default function FocusPage() {
                           'text-ink shadow-brutal-sm dark:shadow-brutal-sm-invert -translate-y-0.5',
                           option === 'focus' ? 'bg-orange' : 'bg-mint'
                         )
-                      : 'bg-cream text-ink opacity-70 hover:opacity-100 dark:bg-black dark:text-white'
+                      : 'bg-cream text-ink opacity-70 hoverable:opacity-100 dark:bg-black dark:text-white'
                   )}
                 >
                   <TimerIcon aria-hidden="true" size={16} strokeWidth={3} />
@@ -456,7 +458,7 @@ export default function FocusPage() {
                     'inline-flex min-h-12 items-center rounded-md border px-4 font-mono text-xs font-bold uppercase tracking-wider transition-transform duration-100',
                     focusMinutes === preset
                       ? 'bg-orange text-ink shadow-brutal-sm dark:shadow-brutal-sm-invert'
-                      : 'bg-cream text-ink hover:bg-yellow dark:bg-black dark:text-white'
+                      : 'bg-cream text-ink hoverable:bg-yellow dark:bg-black dark:text-white'
                   )}
                 >
                   {preset} min

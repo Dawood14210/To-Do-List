@@ -59,7 +59,7 @@ export function CalendarTaskChip({
           ? 'border-red bg-red text-white'
           : task.done
             ? 'border-black bg-cream text-ink opacity-70 dark:border-white dark:bg-black dark:text-white'
-            : 'border-black bg-white text-ink hover:bg-yellow dark:border-white dark:bg-black dark:text-white dark:hover:bg-black',
+            : 'border-black bg-white text-ink hoverable:bg-yellow dark:border-white dark:bg-black dark:text-white dark:hoverable:bg-black',
         isDragging && 'opacity-40'
       )}
     >

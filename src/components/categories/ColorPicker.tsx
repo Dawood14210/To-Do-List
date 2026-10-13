@@ -43,7 +43,7 @@ export function ColorPicker({
                 option.value,
                 active
                   ? '-translate-y-0.5 border-4 border-black shadow-brutal-sm dark:border-white dark:shadow-brutal-sm-invert'
-                  : 'border-2 border-black opacity-70 hover:opacity-100 dark:border-white'
+                  : 'border-2 border-black opacity-70 hoverable:opacity-100 dark:border-white'
               )}
             >
               {active ? <Check aria-hidden="true" size={22} strokeWidth={4} /> : null}

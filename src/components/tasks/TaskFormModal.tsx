@@ -188,7 +188,7 @@ export function TaskFormModal({ open, task, defaultDate, onClose }: TaskFormModa
                     meta.color,
                     active
                       ? 'shadow-brutal-sm dark:shadow-brutal-sm-invert -translate-y-0.5'
-                      : 'opacity-60 hover:opacity-100'
+                      : 'opacity-60 hoverable:opacity-100'
                   )}
                 >
                   {meta.long}
@@ -274,7 +274,7 @@ export function TaskFormModal({ open, task, defaultDate, onClose }: TaskFormModa
                     onClick={() =>
                       patch({ subtasks: form.subtasks.filter((s) => s.id !== sub.id) })
                     }
-                    className="grid h-12 w-12 shrink-0 place-items-center rounded-md hover:bg-pink"
+                    className="grid h-12 w-12 shrink-0 place-items-center rounded-md hoverable:bg-pink"
                   >
                     <Trash2 aria-hidden="true" size={16} strokeWidth={2.5} />
                   </button>

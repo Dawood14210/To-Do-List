@@ -329,7 +329,7 @@ export default function CalendarPage() {
                     'inline-flex min-h-12 items-center gap-2 rounded-md border px-3 font-mono text-xs font-bold uppercase tracking-wider transition-transform duration-100',
                     active
                       ? 'bg-blue text-ink shadow-brutal-sm -translate-y-0.5 dark:shadow-brutal-sm-invert'
-                      : 'bg-cream text-ink opacity-70 hover:opacity-100 dark:bg-black dark:text-white'
+                      : 'bg-cream text-ink opacity-70 hoverable:opacity-100 dark:bg-black dark:text-white'
                   )}
                 >
                   <Icon aria-hidden="true" size={16} strokeWidth={3} />

@@ -10,6 +10,11 @@
   body {
     @apply bg-cream text-ink font-body antialiased;
     -webkit-tap-highlight-color: transparent;
+    /* Never let content slide under a notch or a rounded corner. */
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    /* The native shell shouldn't rubber-band the whole page. */
+    overscroll-behavior-y: none;
   }
 
   .dark body {
@@ -74,3 +79,38 @@
     display: none;
   }
 }
+
+@layer utilities {
+  /* ------------------------------------------------ safe areas (notch) */
+  .px-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Room for the fixed bottom tab bar *plus* the gesture bar. */
+  .pb-safe-tabbar {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8rem);
+  }
+
+  /* Same, but the tab bar is hidden from `lg` up. */
+  @media (min-width: 1024px) {
+    .pb-safe-tabbar {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 3rem);
+    }
+  }
+}
+
+/*
+ * Touch devices: `:hover` latches after a tap, so every hover style in the app
+ * is compiled through Tailwind's `hoverable:` variant (see tailwind.config.js)
+ * and only exists for a real pointer — there is nothing to undo here. Tap
+ * feedback comes from the `active:` states instead.
+ */

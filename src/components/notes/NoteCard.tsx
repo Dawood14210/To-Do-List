@@ -45,7 +45,7 @@ export function NoteCard({ note, onTogglePin, onEdit, onDelete }: NoteCardProps)
             'grid h-12 w-12 shrink-0 place-items-center rounded-md border transition-colors duration-100',
             note.pinned
               ? 'border-black bg-ink text-white dark:border-white'
-              : 'border-transparent hover:border-black hover:bg-white/50 dark:hover:border-white'
+              : 'border-transparent hoverable:border-black hoverable:bg-white/50 dark:hoverable:border-white'
           )}
         >
           {note.pinned ? (

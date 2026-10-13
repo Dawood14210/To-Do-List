@@ -156,7 +156,7 @@ export function HabitCard({
                     onClick={() => onToggleDate(key)}
                     className={cn(
                       'flex min-h-14 w-full flex-col items-center justify-center gap-1 rounded-md border transition-colors duration-100',
-                      checked ? habit.color : 'bg-cream hover:bg-yellow dark:bg-black',
+                      checked ? habit.color : 'bg-cream hoverable:bg-yellow dark:bg-black',
                       today
                         ? 'border-4 border-blue dark:border-blue'
                         : 'border-black dark:border-white'

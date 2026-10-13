@@ -1,7 +1,8 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Database,
   Download,
+  HardDriveDownload,
   Moon,
   RotateCcw,
   Sun,
@@ -12,7 +13,14 @@ import {
 import { useAppStore } from '../store';
 import { useToast } from '../hooks/useToast';
 import { cn } from '../utils/cn';
-import { toISODate } from '../utils/dates';
+import {
+  backupFilename,
+  exportBackup,
+  listLocalBackups,
+  readLocalBackup,
+  type LocalBackup,
+} from '../utils/fileTransfer';
+import { hapticMedium, isNative } from '../utils/native';
 import { formatDuration } from '../utils/focus';
 import { BrutalButton } from '../components/BrutalButton';
 import { BrutalModal } from '../components/BrutalModal';
@@ -51,12 +59,26 @@ export default function SettingsPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingReset, setPendingReset] = useState(false);
+  const [localBackups, setLocalBackups] = useState<LocalBackup[]>([]);
 
   const focusMinutes = focusSessions.reduce((sum, session) => sum + session.minutes, 0);
   const fileSize = useMemo(() => {
     const bytes = new Blob([exportData()]).size;
     return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
   }, [exportData, tasks, categories, habits, notes, focusSessions]);
+
+  // On the device, exports are written to the app folder — list them so they
+  // can be restored without leaving the app.
+  const refreshLocalBackups = useCallback(() => {
+    if (!isNative()) return;
+    void listLocalBackups()
+      .then(setLocalBackups)
+      .catch(() => setLocalBackups([]));
+  }, []);
+
+  useEffect(() => {
+    refreshLocalBackups();
+  }, [refreshLocalBackups]);
 
   const counts = [
     { label: 'Tasks', value: tasks.length, color: 'bg-pink' },
@@ -67,24 +89,32 @@ export default function SettingsPage() {
     { label: 'Focused', value: formatDuration(focusMinutes), color: 'bg-yellow' },
   ];
 
-  const handleExport = () => {
-    const json = exportData();
-    const filename = `to-do-list-backup-${toISODate(new Date())}.json`;
+  /**
+   * Export: on Android the JSON is written with the Filesystem plugin and
+   * handed to the system share sheet; on the web it is a normal download.
+   */
+  const handleExport = async () => {
+    const result = await exportBackup(exportData(), backupFilename());
+    toast(result.message, result.ok ? 'success' : 'error');
+    if (result.ok) refreshLocalBackups();
+  };
 
+  /** Restore one of the backups already on the device (native import path). */
+  const handleRestoreLocal = async (backup: LocalBackup) => {
+    let text = '';
     try {
-      const blob = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast(`Exported ${filename} (${(json.length / 1024).toFixed(1)} KB)`, 'success');
+      text = await readLocalBackup(backup.name);
     } catch {
-      toast('Download blocked — your browser refused the file', 'error');
+      toast('Could not read that backup', 'error');
+      return;
     }
+    const result = importData(text);
+    if (!result.ok || !result.counts) {
+      toast(result.error ?? 'Import failed', 'error');
+      return;
+    }
+    const { tasks: t, categories: c, habits: h, notes: n, focusSessions: f } = result.counts;
+    toast(`Restored ${backup.name} — ${t} tasks, ${c} categories, ${h} habits, ${n} notes, ${f} sessions`, 'success');
   };
 
   const handleFile = async (file: File) => {
@@ -109,6 +139,7 @@ export default function SettingsPage() {
   };
 
   const confirmReset = () => {
+    void hapticMedium(); // you just deleted everything: feel it
     resetData();
     setPendingReset(false);
     toast('All data reset to a fresh start', 'warning');
@@ -153,7 +184,7 @@ export default function SettingsPage() {
                         '-translate-y-0.5 text-ink shadow-brutal-sm dark:shadow-brutal-sm-invert',
                         option === 'light' ? 'bg-yellow' : 'bg-blue'
                       )
-                    : 'bg-cream text-ink opacity-70 hover:opacity-100 dark:bg-black dark:text-white'
+                    : 'bg-cream text-ink opacity-70 hoverable:opacity-100 dark:bg-black dark:text-white'
                 )}
               >
                 <Icon aria-hidden="true" size={22} strokeWidth={2.5} />
@@ -206,7 +237,7 @@ export default function SettingsPage() {
         </ul>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <BrutalButton variant="mint" onClick={handleExport}>
+          <BrutalButton variant="mint" onClick={() => void handleExport()}>
             <Download aria-hidden="true" size={18} strokeWidth={3} />
             Export JSON
           </BrutalButton>
@@ -231,9 +262,42 @@ export default function SettingsPage() {
         </div>
 
         <p className="mt-3 font-mono text-[10px] uppercase leading-snug tracking-wider opacity-70">
-          Stores settings, tasks, categories, habits, notes and focus sessions. Importing replaces
-          everything currently here.
+          {isNative()
+            ? 'Stores settings, tasks, categories, habits, notes and focus sessions. Export writes to the app folder and opens the Android share sheet; import opens the file picker. Importing replaces everything currently here.'
+            : 'Stores settings, tasks, categories, habits, notes and focus sessions. Importing replaces everything currently here.'}
         </p>
+
+        {localBackups.length > 0 && (
+          <div className="mt-4 rounded-md border bg-cream p-3 dark:bg-black">
+            <h3 className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider">
+              <HardDriveDownload aria-hidden="true" size={16} strokeWidth={3} />
+              Backups on this device
+            </h3>
+            <ul className="mt-2 space-y-2">
+              {localBackups.slice(0, 3).map((backup) => (
+                <li
+                  key={backup.name}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-white px-2 py-2 dark:bg-black"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-mono text-[11px] font-bold">{backup.name}</span>
+                    <span className="block font-mono text-[10px] uppercase tracking-wider opacity-70">
+                      {new Date(backup.mtime).toLocaleString()} · {(backup.size / 1024).toFixed(1)} KB
+                    </span>
+                  </span>
+                  <BrutalButton
+                    variant="white"
+                    size="sm"
+                    onClick={() => void handleRestoreLocal(backup)}
+                    aria-label={`Restore ${backup.name}`}
+                  >
+                    Restore
+                  </BrutalButton>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
       {/* Danger zone */}
