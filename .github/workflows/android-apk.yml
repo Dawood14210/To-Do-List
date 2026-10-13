@@ -24,16 +24,16 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
@@ -47,13 +47,44 @@ jobs:
       - name: Sync the web build into the Android project
         run: npx cap sync android
 
+      # `ubuntu-latest` ships the Android SDK (ANDROID_HOME, platform 36 and
+      # build-tools 36.0.0 — exactly what this project compiles against), so the
+      # SDK is only bootstrapped if an image ever stops shipping one.
+      - name: Locate the Android SDK
+        id: sdk
+        run: |
+          sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          if [ -d "$sdk" ]; then
+            echo "dir=$sdk" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Android SDK found at: $sdk"
+
       - name: Set up the Android SDK
+        if: steps.sdk.outputs.dir == ''
         uses: android-actions/setup-android@v3
 
-      - name: Install the SDK packages the project compiles against
+      - name: Point Gradle at the Android SDK
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
+          sdk="${{ steps.sdk.outputs.dir }}"
+          if [ -z "$sdk" ]; then sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT}}"; fi
+          # Gradle reads the SDK location from here (local.properties is gitignored).
+          echo "sdk.dir=$sdk" > android/local.properties
+
+          # Accept licences + top up the compile SDK. Both ship with the runner
+          # image, so this is usually a no-op; it is guarded so it can never be
+          # the reason a build fails.
+          sdkmanager="$sdk/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$sdkmanager" ] || sdkmanager="$(command -v sdkmanager || true)"
+          if [ -n "$sdkmanager" ]; then
+            timeout 180 bash -c "yes | '$sdkmanager' --licenses" > /dev/null 2>&1 || true
+            timeout 600 "$sdkmanager" --install "platforms;android-36" "build-tools;36.0.0" > /dev/null 2>&1 || true
+          fi
+
+          echo "Android SDK: $sdk"
+          echo "platforms:   $(ls "$sdk/platforms" 2>/dev/null | tr '\n' ' ')"
+          echo "build-tools: $(ls "$sdk/build-tools" 2>/dev/null | tr '\n' ' ')"
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
@@ -65,7 +96,7 @@ jobs:
           ls -lh app/build/outputs/apk/debug/app-debug.apk
 
       - name: Upload the debug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: BrutalTodo-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
